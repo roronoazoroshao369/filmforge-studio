@@ -1,6 +1,7 @@
 # 26 — Implement continuity review evidence
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M4
 Priority: P2

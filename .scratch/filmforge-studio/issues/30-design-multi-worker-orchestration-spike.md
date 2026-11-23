@@ -1,6 +1,7 @@
 # 30 — Design multi-worker orchestration spike
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M5
 Priority: P2

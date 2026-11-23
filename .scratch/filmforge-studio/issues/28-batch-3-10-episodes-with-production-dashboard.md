@@ -1,6 +1,7 @@
 # 28 — Batch 3–10 episodes with production dashboard
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M5
 Priority: P2

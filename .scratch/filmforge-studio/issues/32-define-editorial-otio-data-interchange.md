@@ -1,6 +1,7 @@
 # 32 — Define editorial OTIO data interchange
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M6
 Priority: P2

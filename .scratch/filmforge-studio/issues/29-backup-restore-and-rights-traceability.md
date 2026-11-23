@@ -1,6 +1,7 @@
 # 29 — Backup/restore and rights traceability
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M5
 Priority: P2

@@ -1,6 +1,7 @@
 # 25 — Invalidate affected shots by dependency
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M4
 Priority: P2

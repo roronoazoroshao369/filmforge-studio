@@ -1,6 +1,7 @@
 # 31 — Assess render farm/OpenCue go-no-go
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M5
 Priority: P2
