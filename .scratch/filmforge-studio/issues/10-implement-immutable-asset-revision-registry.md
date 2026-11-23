@@ -1,6 +1,7 @@
 # 10 — Implement immutable asset revision registry
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M1
 Priority: P1

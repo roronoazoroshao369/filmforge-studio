@@ -1,6 +1,7 @@
 # 14 — Provider capability preflight
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M2
 Priority: P1

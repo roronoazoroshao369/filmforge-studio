@@ -1,6 +1,7 @@
 # 09 — Implement canon state query with tests
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M1
 Priority: P1

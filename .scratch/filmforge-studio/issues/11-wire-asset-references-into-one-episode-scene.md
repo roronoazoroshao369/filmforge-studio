@@ -1,6 +1,7 @@
 # 11 — Wire asset references into one episode scene
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M1
 Priority: P1

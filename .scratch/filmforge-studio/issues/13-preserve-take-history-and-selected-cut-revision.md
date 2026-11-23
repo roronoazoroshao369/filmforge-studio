@@ -1,6 +1,7 @@
 # 13 — Preserve take history and selected-cut revision
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M2
 Priority: P1
