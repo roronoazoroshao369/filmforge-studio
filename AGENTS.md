@@ -4,6 +4,10 @@
 
 **Product boundary — approved by owner:** FilmForge is a personal tool to make **original content for owner's own YouTube/other channels and long-term IP**. Not SaaS, not software for sale, not a client production agency. Current stages [Creator-first C0/C1/C2](docs/filmforge/roadmap.md) run with M0 foundation verification. Prioritize original story/rights, manual publishing, audience feedback, content costs and quality; defer heavy series/film features until gates. Never turn creator work into auto-posting, views/engagement farming or mass generic templates. Creative and spend decisions belong to human owner. Agent must not infer real income, eligibility or channel metrics.
 
+## Multi-provider free-first implementation directive (2026-11-23)
+
+Owner has selected creator-owned original IP content and wants **multi-provider API routing** with legitimate free/local providers first, and **OmniRoute** as a *candidate* one-endpoint gateway. Before editing provider code, read `docs/filmforge/provider-routing-architecture.md`, `docs/filmforge/provider-gateway-evaluation.md`, `docs/filmforge/provider-implementation-plan.md` and `docs/filmforge/new-chat-handoff.md`. Existing `TaskService` is sole task-status writer; direct provider adapters stay. Do not silently route free requests into paid models, bypass quotas/terms, mishandle remote async job IDs, leak keys/signed URLs, or infer video capability from model names. Ticket G0 `54–55`, G1 `56–59`, G2 `14–15+60–63`, G3 `64–65`; no code is implemented by roadmap updates. Validate startup/tests before claims.
+
 ## FilmForge planned extension (2026-11-23)
 
 Repository is a Jellyfish-derived fork. For FilmForge tasks first read [FilmForge docs](docs/filmforge/README.md), [roadmap](docs/filmforge/roadmap.md), [constraints](CONSTRAINTS.md) and the local tracker `.scratch/filmforge-studio/`. Planned features are not shipped features. Preserve original task/Take/cut authority and license. Main-only process: [workflow](docs/filmforge/main-only-workflow.md). Current source conventions below remain in force.

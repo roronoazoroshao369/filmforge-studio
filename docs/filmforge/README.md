@@ -4,8 +4,10 @@
 
 FilmForge is a **personal creator-owned short-video and original-IP production tool**. It is **not** a SaaS product, app for sale, agency, or tool for producing videos for customers. Short creative videos on the owner's own channel come first; recurring original characters and audiences finance later xianxia series and feature films **if evidence and personal resources justify expansion**.
 
+**NEW: MULTI-PROVIDER FREE-FIRST API ROUTING** — owner proposes OmniRoute-like single endpoint for legitimate free/local providers and optional paid models. Internal FilmForge routing is **capability-aware and gateway-agnostic**; no silent paid escalation or async job double-submit. [Design](provider-routing-architecture.md) · [Gateway comparison](provider-gateway-evaluation.md) · [implementation plan](provider-implementation-plan.md) · [New chat complete prompt](new-chat-handoff.md). New tickets **54–65** + promoted **14–15**. **No router has been installed or tested**.
+
 **Start here in this order:**
-1. [Creator-First Final Roadmap](roadmap.md) — stages C0/C1/C2, technical M0 in parallel, future film milestones gated.
+1. [Creator-First + Multi-Provider Final Roadmap](roadmap.md) — stages C0/C1/C2, technical M0 in parallel, future film milestones gated.
 2. [Creator Strategy](creator-first.md) — storytelling, analytics, financial safeguards and original IP.
 3. [Simulated Specialist Board](creator-board-review.md) — 10 roles, dissent and conditional verdict.
 4. [Technology Radar](creator-tech-radar.md) — prioritized GitHub repos, commit SHA and license boundaries.

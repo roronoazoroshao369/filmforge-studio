@@ -6,7 +6,7 @@ Source of truth: [roadmap](../../docs/filmforge/roadmap.md), [creator strategy](
 
 ## Scheduling
 
-**Active:** C0 **36–40** (experiment and rights review) in parallel with technical M0 **01–05** (baseline). **Next:** C1 **41–47**, C2 **48–53**. **Deferred:** original long-film tickets **06–35**, preserved intact for future re-triage. Numeric ID is stable identity, *not* global work priority.
+**Active:** C0 **36–40** (creative experiment) in parallel with technical M0 **01–05**. **Engineering next after 03/04:** G0 **54–55** → G1 **56–59** → G2 **promoted 14–15 + 60–63** → optional G3 **64–65**. C1 **41–47** runs with G1/G2 if useful, C2 **48–53** after published evidence. **Deferred film:** 06–13 and 16–35; numeric ID is stable identity, not global priority. Numeric ID is stable identity, *not* global work priority.
 
 ## Ticket record protocol
 
@@ -26,3 +26,9 @@ Only approved source code and policy decisions are “Done”; current docs are 
 ## Comments
 
 - 2026-11-23 — Owner changed direction to personal content/IP revenue. Creator-first C0/C1/C2 now precedes long-series and cinematic expansion. All tasks pending.
+
+## Routing-specific invariants
+
+- Free-tier entitlement, commercial rights and quota are validated per model/account/region/date. Never bypass free quota/ToS, assume API from a consumer subscription, or silently switch to paid model.
+- OmniRoute is an optional gateway, not a replaced TaskService. Async image/video submit, polling and completion remain pinned to selected route; unknown paid create state must not auto-create a second job.
+- Refer to `docs/filmforge/provider-routing-architecture.md` and `docs/filmforge/provider-implementation-plan.md`. All G tasks not-started; no live provider tests yet.

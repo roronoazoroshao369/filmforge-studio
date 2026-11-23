@@ -7,6 +7,8 @@
 
 **Status:** proposed extensions, not deployed. **Existing runtime** = Jellyfish application; **future integration** = FilmForge additions.
 
+> **API routing extension:** FilmForge is multi-provider and **free-first within legitimate rights/quality/budget**. The internal policy selector is gateway-independent. Native Jellyfish adapters remain; OmniRoute is only a conditional external gateway for text first, image/video only after tested capability, async polling and costs. [Contract](provider-routing-architecture.md). No paid route on automatic fallback without explicit owner approval.
+
 ## Source-of-truth ownership
 
 - **Current Jellyfish**: `Project / Chapter / Sequence` (story scene), existing SceneVersion/ProductionUnit/SceneTakeRecord; `TaskService` is only writer for `Task` lifecycle, `TaskWorker` executes jobs, `FileItem` is immutable file identity. Consult `../development/reference/data-model.md` and `../development/architecture/task-execution.md`.

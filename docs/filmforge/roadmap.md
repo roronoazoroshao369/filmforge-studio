@@ -39,13 +39,36 @@ M0 (existing repo baseline) and C0 (creator/market validation outside software) 
 | **M0: Jellyfish foundation** | Reproducible FastAPI/React/worker baseline, test and license audit | Real commands/logs, Go/No-Go decision (not merely source review) | **01–05** |
 | **C1: Creator Short Studio** | Shot-level story → reference → render → voice/captions → 9:16 export + metadata | 10 accepted videos / repeatable source manifest / 1-shot reshoot; genuine tested output, not mock | **41–47** |
 | **C2: Owned-channel feedback loop** | Manual analytics import, measured experiments, short→longform bridge, mini-series light canon | Evidence from published work; repeat viewers or watch time improve relative to own baseline; financially safe plan | **48–53** |
-| **M1/M2: Film-grade foundations** | Existing FilmForge tasks for canon, asset registry, take/cut and 60–90s film | Activate **after** C1/C2 proves creative workflow and needs deeper continuity; re-triage scope | **06–18 (deferred)** |
+| **M1/M2: Film-grade foundations** | Existing FilmForge tasks for canon, asset registry, take/cut and 60–90s film | Activate **after** C1/C2 proves creative workflow and needs deeper continuity; re-triage scope | **06–13, 16–18 (deferred); 14–15 promoted G2** |
 | **M3: Animation pilot** | Blender/rig/scene bridge, repeatable 3–5min animation | Real reusable asset/scene provenance and approved cut | **19–23 (deferred)** |
 | **M4: Cross-episode** | Strong World State Engine and 2-episode continuity | Two episodes, flashbacks/retcon work with pinned assets | **24–27 (deferred)** |
 | **M5: Scale** | 3–10 episodes, recovery, distributed scheduler decision | Sustained production economics, backup restore, measured bottleneck | **28–31 (deferred)** |
 | **M6: Feature film** | OTIO, CGI/VFX, color/audio/rights, feature-film preproduction | Technical conform of film sequence; **not** a claim that Hollywood-quality feature is achieved | **32–35 (deferred)** |
 
 **IMPORTANT:** Original ticket IDs 06–35 are preserved for historical continuity, not abandoned or silently reordered. Their status remains triage and Progress remains not-started. Future M1–M6 sequencing is conditional; creator tasks 36–53 take priority after M0, even though their numeric IDs are higher.
+
+## 2A. New priority: free-first multi-provider API routing (G0–G3)
+
+**Owner direction:** Use multiple model/provider APIs, optionally route through a **single external endpoint** (OmniRoute candidate) to reduce cost. “Free” requires validated commercial rights, API entitlement, quota and quality. **Do not** assume one router generates text, image, video and speech with identical semantics. This is a **proposed architecture**, not a shipped feature.
+
+**Decision:** FilmForge keeps a **replaceable internal routing policy** + existing vendor-direct adapters. OmniRoute is a configurable outside gateway (first evaluated for script/text) rather than FilmForge's only transport. Capability preflight, free/paid policy, budgets and sticky async job routing stay **inside FilmForge**. Implementation must build on Jellyfish's ProviderRegistry/base URL/FrozenGenerationConfig/TaskService; don't rebuild the task worker.
+
+| Milestone | Goal and smallest useful output | Exit gate | IDs / parallelism |
+|---|---|---|---|
+| **G0 — Gateway due diligence** | Audit current provider code; compare OmniRoute / OmniRouter / LiteLLM / OpenRouter / direct; choose legitimate free-first pilot | Tested matrix by modality, rights, terms, privacy, license, URL and owner approval; not marketing model counts | **54–55** after technical 03/04 |
+| **G1 — Text router first** | Typed capabilities, commercial free eligibility, deterministic policy dry-run, **one** gateway text endpoint with direct fallback | Offline RED/GREEN tests; no surprise paid call; text+script routing demo; credentials redacted; gateway replaceable | **56–59** |
+| **G2 — Safe image/video routing** | Add only verified image/video endpoints; async route pinned from submit through poll/output; cost caps and route-preview UI | No unsupported model call; paid timeout does not double-submit; free-only never falls back to paid; human approves spend | **promoted 14–15, new 60–63** |
+| **G3 — Real benchmark / local option** | Assess faster-whisper/ComfyUI local workers and measure direct vs gateway outcomes | Proven real API (if owner authorized), quality/cost/rights/latency report, rollback path. No real-call evidence = not verified | **64–65** |
+
+**Execution order:** C0 creator experiment **36–40** and M0 baseline **01–05** can proceed independently. After baseline 03/04, G0/G1 run alongside C1 short-video workflow (41–47); **do not block publishing an original short because a universal gateway is incomplete**. G2 only after G1 test evidence and human budget approval. G3 optional before C2 expansion. Series 06–13 and 16–35 remain long-horizon; **14 and 15 explicitly promoted**.
+
+**Route scoring (hard constraints first):** verified commercial rights → supported modality & precise features → enabled legitimate API quota → privacy/region → free/local first if meets artistic quality → cost estimate and owner budget approval → health/latency → explicit route manifest. A provider that can **analyze** a video is not necessarily capable of **generating** one. Unknown price != free. Free cloud API credits are not perpetual and do not authorize multi-account evasion.
+
+**Failure policy:** Before submit, alternatives can be re-selected within owner-defined allowlist. After remote create may have occurred, record uncertain outcome; **no blind paid retry/fallback**. Once job ID exists, poll the **same gateway/provider/account**, not another endpoint. Existing Jellyfish TaskService remains sole task writer and single coordinator unless future approved ADR.
+
+**Measures:** approved output per true total cost, cost of rejected takes, free-tier quota spent, route pass rate, unsupported preflight blocks, unknown paid outcomes, duplicated paid jobs (target zero), 9:16 video acceptance, manual quality and rights signoff.
+
+**Detailed contracts:** [routing architecture](provider-routing-architecture.md), [gateway evaluation](provider-gateway-evaluation.md), [implementation plan](provider-implementation-plan.md), [new-chat handoff](new-chat-handoff.md).
 
 ## 3. C0 — Channel / concept validation
 
@@ -110,8 +133,8 @@ Requirements:
 
 ## 9. Active queue / governance
 
-**Now:** C0 tickets **36–40** (creator experiments) parallel with M0 tickets **01–05** (technical baseline).  
-**Next:** C1 tickets **41–47** after GO and content hypotheses, then C2 tickets **48–53**.  
-**Later:** resume 06–35 individually only on explicit evidence and creator sign-off.
+**Now:** C0 tickets **36–40** (creator experiments) parallel with M0 tickets **01–05** (technical baseline). After 03/04, **G0 54–55** and **G1 56–59** become active; the router must not delay creative learning.  
+**Next:** C1 tickets **41–47** after GO and content hypotheses, in parallel with G1. G2 = **14–15 + 60–63** after gates, G3 = **64–65** optional; then C2 tickets **48–53** with realized data.  
+**Later:** resume **06–13, 16–35** individually only on explicit evidence and creator sign-off. Tasks **14–15** are specifically promoted to G2.
 
 Read [creator strategy](creator-first.md), [expert council](creator-board-review.md), [technical radar](creator-tech-radar.md), [policy sources](policy-sources.md), [task plan](../../tasks/plan.md). Status: `Status` is triage; `Progress` is execution; completion requires exact commit SHA + tests + actual content artifact/reviewer evidence.

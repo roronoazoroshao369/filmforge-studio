@@ -3,9 +3,9 @@
 Status: needs-triage
 Progress: not-started
 Type: task
-Phase: M2
-Priority: P1
-Blocked by: 03,12
+Phase: G2 (promoted from M2)
+Priority: P0
+Blocked by: 03,56
 Owner: unassigned
 Target: main
 
@@ -36,3 +36,5 @@ Build/extend existing video capability manifest; verify required refs, duration,
 
 ## Comments
 - 2026-11-23 — Planned from FilmForge roadmap; **not started**. No test or build result claimed.
+
+- 2026-11-23 — **Scheduling adjustment:** brought this capability preflight forward for multi-provider creator routing. New dependency: G1 contract task 56, not long-series storyboard task 12. Source behavior unchanged; test implementation still pending.

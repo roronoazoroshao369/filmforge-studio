@@ -3,8 +3,8 @@
 Status: needs-triage
 Progress: not-started
 Type: task
-Phase: M2
-Priority: P1
+Phase: G2 (promoted from M2)
+Priority: P0
 Blocked by: 03,14
 Owner: unassigned
 Target: main
@@ -36,3 +36,5 @@ Add submission intent/unknown outcome rule, reconciliation policy and per-projec
 
 ## Comments
 - 2026-11-23 — Planned from FilmForge roadmap; **not started**. No test or build result claimed.
+
+- 2026-11-23 — **Scheduling adjustment:** brought this existing paid submission/idempotency task forward to G2; gateway-specific sticky polling is task 61, not a duplicate replacement. Source behavior unchanged; test implementation pending.

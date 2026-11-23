@@ -9,26 +9,36 @@
 - **Creator/market stream:** **36 → 37 → 38 → 39 → 40**. Owner tests original concepts with existing tools *before* engineering. Manual publishing; no subscriptions without a cap.
 - **Foundation stream:** **01 → 02,03,04 → 05**. Verify Jellyfish locally, code conventions and Go/No-Go. This is not a prerequisite to the no-code creator experiments.
 
-## Next feature stream, only after evidence
+## Gateway implementation track — new highest engineering priority after baseline
+
+**G0 54–55** (audit/compare) after technical 03/04; **G1 56–59** (typed capabilities, legitimate free-first filter, route dry-run, text gateway), then **G2 promoted 14–15 and new 60–63** (verified image/video, sticky async remote ID, budget, UI), then optional **G3 64–65** (local workers and benchmark).
+
+**Do not postpone creator C0 videos for router development**; C1 41–47 can start with existing Jellyfish direct providers and move to verified router paths later. Text gateway is a first experiment, not a mandatory omni-media dependency. Full [provider implementation plan](../docs/filmforge/provider-implementation-plan.md), [policy](../docs/filmforge/provider-routing-architecture.md), [new chat prompt](../docs/filmforge/new-chat-handoff.md).
+
+
 
 - **C1 Short Studio:** **41–47**, with functional dependencies in each ticket. Goals: approved script/shot, 9:16 original-video output, safe captions/voice, human approval, real cost ledger.
 - **C2 audience/episode bridge:** **48–53**, manual analytics import, creative experiments, 3–10-minute original episode, lite Bible, 4-week economics and creator sign-off.
-- **Future original series/feature film:** retain **06–35**, but **defer**, then re-triage individually after C2. Old M1/M2/M3 titles in Master Handoff are historical — they are not active scheduling priority anymore.
+- **Future original series/feature film:** retain **06–13 and 16–35** but defer; **14–15 are promoted into G2**. Re-triage film tasks individually after C2. Old M1/M2/M3 titles in Master Handoff are historical — they are not active scheduling priority anymore.
 
 ## Active task index
 
 | Phase | IDs | Evidence needed |
 |---|---|---|
 | M0 technical baseline | 01–05 | API/Worker/UI/tests reproducible, recorded Go/No-Go |
+| G0 multi-provider audit | 54–55 | Existing provider code traced, OmniRoute evaluated and legal pilot chosen |
+| G1 free-first text route | 56–59 | Capabilities, eligible-free policy, deterministic routing + one text gateway trial |
+| G2 safe multimodal route | 14–15, 60–63 | Preflight, sticky async jobs, no unapproved spend, routing UI |
+| G3 local & benchmark | 64–65 | Local route decision, measured approved-video cost and native vs gateway proof |
 | C0 original channel | 36–40 | 8–12 distinct uploads, 4-week structured review |
 | C1 short-video factory (creator-only) | 41–47 | 10 approved 9:16 video outputs, project manifest and budget |
 | C2 creator feedback | 48–53 | Real creator analytics, 3–10 minute story, continuation gate |
-| M1/M2 future film foundation | 06–18 | Retriage after C2 and owner go |
+| M1/M2 future film foundation | 06–13, 16–18 | Retriage after C2 and owner go |
 | M3/M4/M5/M6 long film | 19–35 | Later stage technical gates and available resources |
 
 ## Single-ticket execution
 
-Choose the **highest-priority unblocked** ticket in active streams; ID order does **not** override phase priorities. Do not start `needs-triage` tickets before categorization; `ready-for-human` needs owner creative/release decision. Write spec, failing tests for behavior changes, smallest code, run appropriate checks, inspect diff, commit on `main`, record exact SHA/evidence and `Progress: done`. Recompute dependencies when advancing future phases. M0 applies existing `TaskService` ownership and single-worker constraints.
+Choose the **highest-priority unblocked** ticket in active C0/M0/G0/G1 streams; ID order does **not** override phase priorities. Do not start `needs-triage` tickets before categorization; `ready-for-human` needs owner creative/release decision. Write spec, failing tests for behavior changes, smallest code, run appropriate checks, inspect diff, commit on `main`, record exact SHA/evidence and `Progress: done`. Recompute dependencies when advancing future phases. M0 applies existing `TaskService` ownership and single-worker constraints.
 
 ## Scope exclusions
 
