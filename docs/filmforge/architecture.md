@@ -1,5 +1,10 @@
 # FilmForge architecture — decision record for future implementation
 
+> **Current scope priority:** Creator-owned original short-video production (C0/C1/C2) before full series/film infrastructure. This document defines long-term data boundaries, **not a mandate to implement Series/Season/WorldState now**. Use [roadmap](roadmap.md) and [creator strategy](creator-first.md) for current ordering.
+>
+> MVP workflow: `original idea → script/shot draft → human approval → existing Jellyfish Task/Take/cut → captions/voice → 9:16 export → human release gate → manual upload → owner-supplied aggregate analytics`. Keep provenance and minimal character/style Bible. No SaaS billing, client workflows, automatic content posting or multi-worker render farm in C0/C1.
+
+
 **Status:** proposed extensions, not deployed. **Existing runtime** = Jellyfish application; **future integration** = FilmForge additions.
 
 ## Source-of-truth ownership

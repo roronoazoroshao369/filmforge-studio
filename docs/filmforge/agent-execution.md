@@ -1,5 +1,10 @@
 # Coding agent execution contract
 
+> **Owner strategy override (2026-11-23):** FilmForge creates videos for **owner-controlled channels and original IP only**, not B2B, client projects or SaaS. Read [creator roadmap](roadmap.md), [creator creative strategy](creator-first.md), [policy register](policy-sources.md) and [technology radar](creator-tech-radar.md) before selecting tasks. Creator C0 tickets 36–40 run parallel to M0 01–05. Creator C1 41–47, C2 48–53 precede long-series tasks 06–35. No auto-upload and no paid request without owner-approved budget. Never confuse creating a script/video with actually publishing/monetizing it.
+>
+> **Agent ticket selection:** highest-priority **unblocked and triaged** ticket in active streams, **not lowest numeric ticket**. `ready-for-human` creative and publication tasks are human-owned; agent can draft/review but cannot publish or declare creative approval. Preserve `Status` triage labels; update `Progress` only with evidence.
+
+
 **Scope: documentation/roadmap committed; implementation pending.** Read [master handoff](master-handoff.md), [roadmap](roadmap.md), [architecture](architecture.md), `AGENTS.md`, `CONSTRAINTS.md` and the specific tracker ticket before editing.
 
 ## Command baseline (from Jellyfish; verify in M0)
@@ -48,4 +53,4 @@ Commands are runbook candidates, not evidence that they passed. Never create env
 
 ## Agent handoff starter
 
-> Read `AGENTS.md`, `docs/filmforge/README.md`, `docs/filmforge/roadmap.md` and `tasks/plan.md`. Identify the lowest-number unblocked open ticket under `.scratch/filmforge-studio/issues/`. First report existing behavior, affected files, tests, risks and planned acceptance criteria. Implement **only that ticket** using test-first workflow, commit to main after verification, and append commit SHA / test results to its `## Comments`; set `Progress: done` only after evidence, preserving its triage `Status`. Do not advance another ticket without explicit authorization.
+> Read `AGENTS.md`, `docs/filmforge/README.md`, `docs/filmforge/roadmap.md` and `tasks/plan.md`. Identify the highest-priority unblocked, triaged ticket among active C0 (36–40) and M0 (01–05) streams under `.scratch/filmforge-studio/issues/`. First read creator strategy and distinguish human-owned creative tasks from agent tasks. Report existing behavior, affected files, tests, costs, rights and planned acceptance criteria. Implement **only that ticket** using test-first workflow, commit to main after verification, and append commit SHA / test results to its `## Comments`; set `Progress: done` only after evidence, preserving its triage `Status`. Do not advance another ticket without explicit authorization.

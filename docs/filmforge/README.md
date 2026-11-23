@@ -1,3 +1,22 @@
+# FilmForge Studio — Personal Creator / Original IP Mode
+
+**STRATEGY UPDATE 2026-11-23 — CURRENT AND AUTHORITATIVE**
+
+FilmForge is a **personal creator-owned short-video and original-IP production tool**. It is **not** a SaaS product, app for sale, agency, or tool for producing videos for customers. Short creative videos on the owner's own channel come first; recurring original characters and audiences finance later xianxia series and feature films **if evidence and personal resources justify expansion**.
+
+**Start here in this order:**
+1. [Creator-First Final Roadmap](roadmap.md) — stages C0/C1/C2, technical M0 in parallel, future film milestones gated.
+2. [Creator Strategy](creator-first.md) — storytelling, analytics, financial safeguards and original IP.
+3. [Simulated Specialist Board](creator-board-review.md) — 10 roles, dissent and conditional verdict.
+4. [Technology Radar](creator-tech-radar.md) — prioritized GitHub repos, commit SHA and license boundaries.
+5. [2026/2027 Platform Rules](policy-sources.md) — YouTube official policy references.
+6. [Local task tracker](../../.scratch/filmforge-studio/spec.md) — 01–53 with dependencies/statuses, creator tasks 36–53 now priority.
+7. [Implementation plan](../../tasks/plan.md), [agent guide](agent-execution.md), [main-only workflow](main-only-workflow.md).
+
+**Master handoff v1** is historical context for the long-film destination; [read its strategic override](master-handoff.md). C0 original content testing and M0 repository baseline run in parallel; current software capabilities are still unverified.
+
+---
+
 # FilmForge Studio — nguồn điều phối tài liệu
 
 **Status: PLANNED / NOT YET IMPLEMENTED.** Repository là fork Jellyfish. Chưa xác minh bootstrap hoặc provider thực tế; không được nhầm tài liệu mục tiêu với khả năng đã chạy.

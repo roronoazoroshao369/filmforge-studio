@@ -1,3 +1,11 @@
+> **STRATEGIC OVERRIDE — 2026-11-23, CREATOR-FIRST (OWNER APPROVED)**
+>
+> This original handoff is preserved as historical design context for a lifelong xianxia-animation and cinematic-film goal. Its earlier PR-00 → long-series-first schedule is **superseded** by [Creator-First Roadmap](roadmap.md). Product is exclusively a **personal content studio for the owner's own channels and original IP**, not for client services, SaaS or software sales. First execute **creator C0 (tickets 36–40)** in parallel with **technical M0 (tickets 01–05)**; after evidence use C1 (41–47), C2 (48–53), then selectively resume future series/film tasks (06–35). The 2026–2027 monetization policy context is documented in [policy sources](policy-sources.md). Do not treat any previously described film feature as already implemented.
+>
+> [Expert simulation](creator-board-review.md) · [Technology radar](creator-tech-radar.md) · [Source of task truth](../../.scratch/filmforge-studio/spec.md)
+
+---
+
 # FILMFORGE STUDIO — MASTER HANDOFF CONTEXT
 
 > **Bản định hướng, phản biện kiến trúc và đặc tả triển khai cho coding agent**  
