@@ -1,6 +1,7 @@
 # 02 — Establish backend and frontend test baseline
 
-Status: open
+Status: ready-for-agent
+Progress: not-started
 Type: task
 Phase: M0
 Priority: P0

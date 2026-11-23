@@ -1,6 +1,7 @@
 # 03 — Audit task lifecycle and media integration
 
-Status: open
+Status: ready-for-agent
+Progress: not-started
 Type: task
 Phase: M0
 Priority: P0

@@ -1,6 +1,7 @@
 # 08 — Define canon event and story time contract
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M1
 Priority: P1

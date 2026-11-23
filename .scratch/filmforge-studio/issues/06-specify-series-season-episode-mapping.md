@@ -1,6 +1,7 @@
 # 06 — Specify series-season-episode mapping
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M1
 Priority: P1

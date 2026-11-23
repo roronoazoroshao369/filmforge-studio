@@ -1,6 +1,7 @@
 # 01 — Reproduce local environment
 
-Status: open
+Status: ready-for-agent
+Progress: not-started
 Type: task
 Phase: M0
 Priority: P0

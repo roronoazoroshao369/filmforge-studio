@@ -1,6 +1,7 @@
 # 05 — Record foundation GO / NO-GO ADR
 
-Status: open
+Status: ready-for-human
+Progress: not-started
 Type: task
 Phase: M0
 Priority: P0

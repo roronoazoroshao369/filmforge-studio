@@ -1,6 +1,7 @@
 # 04 — Map upstream film domain and duplication hazards
 
-Status: open
+Status: ready-for-agent
+Progress: not-started
 Type: task
 Phase: M0
 Priority: P0
