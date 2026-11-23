@@ -11,7 +11,7 @@ const port = 4782
 const origin = `http://127.0.0.1:${port}`
 process.chdir(root)
 
-const server = await createServer({ root, server: { host: '127.0.0.1', port, strictPort: true, open: false } })
+const server = await createServer({ root, server: { host: '127.0.0.1', port, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } } })
 let browser, page
 const cleanup = browserCleanup(() => ({ browser, server }))
 try {
@@ -60,7 +60,7 @@ try {
     })
   }
   await installFixtures(page)
-  await page.goto(origin)
+  await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 60000 })
   await page.getByRole('heading', { name: '工作概览' }).waitFor()
   await page.getByRole('button', { name: '用户与语言设置' }).click()
   await page.getByRole('menuitem', { name: 'English', exact: true }).click()

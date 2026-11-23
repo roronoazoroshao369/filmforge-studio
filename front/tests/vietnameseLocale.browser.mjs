@@ -12,7 +12,8 @@ const origin = 'http://127.0.0.1:' + port
 const userCanvasName = 'Bản thảo cá nhân · 青云传'
 const server = await createServer({
   root, cacheDir: join(output, 'vite-cache'),
-  server: { host: '127.0.0.1', port, strictPort: true, open: false },
+  // Browser QA uses a fixed source snapshot and does not need file-watch/HMR resources.
+  server: { host: '127.0.0.1', port, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } },
 })
 let browser, page
 const cleanup = browserCleanup(() => ({ browser, server }))
@@ -78,6 +79,14 @@ try {
 
   await page.goto(origin + '/settings')
   await page.getByRole('textbox', { name: 'Tên hiển thị' }).waitFor()
+  await page.goto(origin + '/projects', { waitUntil: 'domcontentloaded' })
+  await page.getByRole('heading', { name: 'Dự án', exact: true }).waitFor()
+  await page.getByRole('textbox', { name: 'Tìm dự án' }).waitFor()
+  await page.goto(origin + '/files', { waitUntil: 'domcontentloaded' })
+  await page.getByRole('heading', { name: 'Quản lý tệp' }).waitFor()
+  await page.getByRole('textbox', { name: 'Tìm tên tệp hoặc nhãn' }).waitFor()
+  await page.getByRole('button', { name: 'Quản lý hàng loạt' }).click()
+  await page.getByRole('button', { name: 'Gắn nhãn hàng loạt (chưa hỗ trợ)' }).waitFor()
   await page.goto(origin + '/no-such-vietnamese-page')
   await page.getByRole('button', { name: 'Về trang chủ' }).click()
 

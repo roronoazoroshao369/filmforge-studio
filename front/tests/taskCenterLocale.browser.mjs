@@ -6,7 +6,7 @@ import { browserCleanup, browserOutput } from './browser-runtime.mjs'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const output = await browserOutput('jellyfish-task-locale-')
-const server = await createServer({ root, cacheDir: output + '/vite-cache', server: { host: '127.0.0.1', port: 4889, open: false } })
+const server = await createServer({ root, cacheDir: output + '/vite-cache', server: { host: '127.0.0.1', port: 4889, open: false, strictPort: true, hmr: false, watch: { ignored: ['**/*'] } } })
 let browser
 const cleanup = browserCleanup(() => ({ browser, server }))
 try {
@@ -38,7 +38,7 @@ try {
       : url.pathname.endsWith('/projects') ? { items: [], pagination: { total: 0 } } : []
     return route.fulfill({ json: { success: true, data } })
   })
-  await page.goto(origin)
+  await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 60000 })
   await page.getByRole('button', { name: '任务中心', exact: true }).click()
   const drawer = page.getByRole('dialog', { name: '任务中心', exact: true })
   await drawer.getByText('全部', { exact: true }).click()
