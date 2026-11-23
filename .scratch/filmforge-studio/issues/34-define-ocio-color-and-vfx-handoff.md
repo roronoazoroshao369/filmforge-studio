@@ -1,6 +1,7 @@
 # 34 — Define OCIO color and VFX handoff
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M6
 Priority: P2

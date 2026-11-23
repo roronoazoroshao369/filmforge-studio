@@ -48,4 +48,4 @@ Commands are runbook candidates, not evidence that they passed. Never create env
 
 ## Agent handoff starter
 
-> Read `AGENTS.md`, `docs/filmforge/README.md`, `docs/filmforge/roadmap.md` and `tasks/plan.md`. Identify the lowest-number unblocked open ticket under `.scratch/filmforge-studio/issues/`. First report existing behavior, affected files, tests, risks and planned acceptance criteria. Implement **only that ticket** using test-first workflow, commit to main after verification, and append commit SHA / test results to its `## Comments`. Do not advance another ticket without explicit authorization.
+> Read `AGENTS.md`, `docs/filmforge/README.md`, `docs/filmforge/roadmap.md` and `tasks/plan.md`. Identify the lowest-number unblocked open ticket under `.scratch/filmforge-studio/issues/`. First report existing behavior, affected files, tests, risks and planned acceptance criteria. Implement **only that ticket** using test-first workflow, commit to main after verification, and append commit SHA / test results to its `## Comments`; set `Progress: done` only after evidence, preserving its triage `Status`. Do not advance another ticket without explicit authorization.

@@ -12,12 +12,12 @@
 ## Working on main safely
 
 1. `git switch main && git pull --ff-only origin main`
-2. Pick the next **unblocked** ticket in `.scratch/filmforge-studio/issues/`; set `Status: in_progress` and add a Comments entry with scope.
+2. Pick the next **unblocked** ticket in `.scratch/filmforge-studio/issues/`; set `Progress: in-progress` (preserve triage `Status`) and add a Comments entry with scope.
 3. Make a small, vertical testable change, preferably ≤5 source files. TDD for behavior changes.
 4. Run focused tests, lint, typecheck and build as appropriate. Record exact command and exit code.
 5. Review `git diff` against task spec/CONSTRAINTS and ensure no secrets.
 6. `git commit -m "[feat] ... "`; push `git push origin main`.
-7. Record commit SHA, result and evidence in task Comments. Status `done` only with evidence.
+7. Record commit SHA, result and evidence in task Comments. Progress `done` only with evidence.
 8. Keep a last-known-good signed tag or backup ref before risky database work; never force-push shared main. Use `git revert` with compliant subject on failure.
 
 **Warning:** direct commits to main cannot benefit from branch-based PR gate. Compensate with local pre-push tests, GitHub Actions, peer/agent review, fast revert, and backups. If you later enable protected main requiring PRs, a strict no-other-branch rule is incompatible; reconsider the policy instead of bypassing protection.

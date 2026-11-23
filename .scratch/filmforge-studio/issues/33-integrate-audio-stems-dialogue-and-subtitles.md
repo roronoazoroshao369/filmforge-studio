@@ -1,6 +1,7 @@
 # 33 — Integrate audio stems, dialogue and subtitles
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M6
 Priority: P2

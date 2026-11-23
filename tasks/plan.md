@@ -28,11 +28,11 @@ Stop after 2–3 tasks to run affected tests + review diffs; after every milesto
 
 ## Work sequence
 
-- Select lowest-number open ticket with dependencies done.
+- Select lowest-number ticket with `Progress: not-started` and `Status: ready-for-agent` whose dependencies are done; triage others before assigning.
 - Record current baseline and implementation plan in ticket Comments.
 - Implement test-first under local conventions.
 - Verify and record SHA/test commands/evidence.
-- Update `Status` of that ticket; repeat only on explicit subsequent work authorization.
+- Update `Progress` of that ticket; preserve its triage `Status`. Repeat only on explicit subsequent work authorization.
 
 ## No hidden assumptions
 

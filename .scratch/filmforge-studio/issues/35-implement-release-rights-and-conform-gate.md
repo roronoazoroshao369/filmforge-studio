@@ -1,6 +1,7 @@
 # 35 — Implement release rights and conform gate
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M6
 Priority: P2
