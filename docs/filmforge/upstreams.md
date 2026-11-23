@@ -1,3 +1,9 @@
+# Creator-first technology adoption update (2026-11-23)
+
+**Read [Creator Tech Radar](creator-tech-radar.md) first for new active candidates and pinned SHAs.** Current shortlist: MoneyPrinterTurbo (MIT orchestration patterns, not content-farm behavior), faster-whisper (MIT captions/ASR), PenShot (MIT script→shot), conditional Remotion (custom license!), ShortGPT (MIT stale study only), AI-Youtube-Shorts-Generator (MIT only for owner-produced longform repurposing), auto-editor (Unlicense), and ComfyUI (GPL external API). Full project merging is forbidden by default; source modules remain unimported until an accepted integration task passes licenses/tests. FilmForge builds for the owner's own channel, not SaaS.
+
+---
+
 # Upstreams / provenance / licensing
 
 Verified reference snapshot 2026-11-23. **No external source code has been merged into FilmForge by this planning commit.** Links are sources for audit, not automatically approved dependencies.

@@ -1,5 +1,9 @@
 # Jellyfish Agent Guide
 
+## FilmForge creator-owned strategy (2026-11-23)
+
+**Product boundary — approved by owner:** FilmForge is a personal tool to make **original content for owner's own YouTube/other channels and long-term IP**. Not SaaS, not software for sale, not a client production agency. Current stages [Creator-first C0/C1/C2](docs/filmforge/roadmap.md) run with M0 foundation verification. Prioritize original story/rights, manual publishing, audience feedback, content costs and quality; defer heavy series/film features until gates. Never turn creator work into auto-posting, views/engagement farming or mass generic templates. Creative and spend decisions belong to human owner. Agent must not infer real income, eligibility or channel metrics.
+
 ## FilmForge planned extension (2026-11-23)
 
 Repository is a Jellyfish-derived fork. For FilmForge tasks first read [FilmForge docs](docs/filmforge/README.md), [roadmap](docs/filmforge/roadmap.md), [constraints](CONSTRAINTS.md) and the local tracker `.scratch/filmforge-studio/`. Planned features are not shipped features. Preserve original task/Take/cut authority and license. Main-only process: [workflow](docs/filmforge/main-only-workflow.md). Current source conventions below remain in force.

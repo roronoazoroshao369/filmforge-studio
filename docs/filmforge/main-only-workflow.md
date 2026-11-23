@@ -1,3 +1,5 @@
+> **Creator-first scheduling:** C0 tickets 36–40 and M0 01–05 are active concurrently; C1 41–47 and C2 48–53 come before deferred film tasks 06–35. Numeric ticket order does not override priority. Publication and budget approvals require owner action; no SaaS/client work.
+
 # Main-only workflow and branch cleanup
 
 **Owner requirement:** maintain only `main`. We honor the intent for a single long-lived branch, but only commit tested/reviewed changes.
@@ -12,7 +14,7 @@
 ## Working on main safely
 
 1. `git switch main && git pull --ff-only origin main`
-2. Pick the next **unblocked** ticket in `.scratch/filmforge-studio/issues/`; set `Progress: in-progress` (preserve triage `Status`) and add a Comments entry with scope.
+2. Pick the next **active, triaged, unblocked** ticket in `.scratch/filmforge-studio/issues/`; set `Progress: in-progress` (preserve triage `Status`) and add a Comments entry with scope.
 3. Make a small, vertical testable change, preferably ≤5 source files. TDD for behavior changes.
 4. Run focused tests, lint, typecheck and build as appropriate. Record exact command and exit code.
 5. Review `git diff` against task spec/CONSTRAINTS and ensure no secrets.
