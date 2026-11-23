@@ -1,6 +1,7 @@
 # 17 — Validate second real provider end-to-end
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M2
 Priority: P1

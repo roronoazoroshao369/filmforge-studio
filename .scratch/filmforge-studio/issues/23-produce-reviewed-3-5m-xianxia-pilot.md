@@ -1,6 +1,7 @@
 # 23 — Produce reviewed 3–5m xianxia pilot
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M3
 Priority: P2

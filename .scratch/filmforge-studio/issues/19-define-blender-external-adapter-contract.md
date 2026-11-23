@@ -1,6 +1,7 @@
 # 19 — Define Blender external adapter contract
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M3
 Priority: P2

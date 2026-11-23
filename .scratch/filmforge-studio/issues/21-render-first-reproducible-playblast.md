@@ -1,6 +1,7 @@
 # 21 — Render first reproducible playblast
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M3
 Priority: P2

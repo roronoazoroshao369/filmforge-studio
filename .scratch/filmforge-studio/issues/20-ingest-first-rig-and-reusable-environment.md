@@ -1,6 +1,7 @@
 # 20 — Ingest first rig and reusable environment
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M3
 Priority: P2

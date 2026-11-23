@@ -1,6 +1,7 @@
 # 22 — Integrate optional ComfyUI effects plate
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M3
 Priority: P2

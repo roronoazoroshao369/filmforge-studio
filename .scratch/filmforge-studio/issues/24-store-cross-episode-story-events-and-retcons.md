@@ -1,6 +1,7 @@
 # 24 — Store cross-episode story events and retcons
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M4
 Priority: P2

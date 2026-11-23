@@ -1,6 +1,7 @@
 # 18 — Deliver pilot approved 60–90s MP4
 
-Status: open
+Status: needs-triage
+Progress: not-started
 Type: task
 Phase: M2
 Priority: P1
