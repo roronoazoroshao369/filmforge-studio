@@ -1,3 +1,5 @@
+> **FilmForge Studio development fork:** This repository retains the original Jellyfish core. FilmForge is a **planned** AI Film Production OS for long-running Xianxia animation and future feature-film workflows. Start at [FilmForge roadmap](docs/filmforge/README.md), [implementation plan](tasks/plan.md), and [master handoff](docs/filmforge/master-handoff.md). Current product features below are from Jellyfish upstream; planned features are not yet implemented.
+
 # Jellyfish — AI Short Drama Studio
 
 <p align="center">

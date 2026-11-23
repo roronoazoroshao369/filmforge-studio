@@ -1,5 +1,10 @@
 # Jellyfish Agent Guide
 
+## FilmForge planned extension (2026-11-23)
+
+Repository is a Jellyfish-derived fork. For FilmForge tasks first read [FilmForge docs](docs/filmforge/README.md), [roadmap](docs/filmforge/roadmap.md), [constraints](CONSTRAINTS.md) and the local tracker `.scratch/filmforge-studio/`. Planned features are not shipped features. Preserve original task/Take/cut authority and license. Main-only process: [workflow](docs/filmforge/main-only-workflow.md). Current source conventions below remain in force.
+
+
 ## 适用范围
 
 - 仅执行与本次任务有关的规则；只读审查不要求实现、生成文件或运行构建。
