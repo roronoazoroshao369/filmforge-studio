@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client'
 import { ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import enUS from 'antd/locale/en_US'
+import viVN from 'antd/locale/vi_VN'
 import App from './App.tsx'
 import 'antd/dist/reset.css'
 import './index.css'
@@ -13,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 
 const RootApp: React.FC = () => {
   const { i18n } = useTranslation()
-  const antdLocale = i18n.resolvedLanguage === 'en-US' ? enUS : zhCN
+  const antdLocale = i18n.resolvedLanguage === 'en-US' ? enUS : i18n.resolvedLanguage === 'vi-VN' ? viVN : zhCN
 
   return (
     <ConfigProvider

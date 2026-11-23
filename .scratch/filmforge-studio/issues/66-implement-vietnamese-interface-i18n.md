@@ -1,0 +1,35 @@
+# 66 — Triển khai giao diện tiếng Việt và bộ chuyển ngôn ngữ
+
+Status: ready-for-agent
+Progress: in-progress
+Type: task
+Phase: M0 / UI localization
+Priority: P1
+Blocked by: None
+Owner: unassigned
+Target: main
+
+## Goal / Deliverable
+Bổ sung vi-VN vào i18next và Ant Design; chuyển ngôn ngữ ngay, lưu lựa chọn và giữ zh-CN/en-US không hồi quy. Việt hóa năm namespace hiện hữu theo từng nhóm màn hình, thống kê chính xác phần chưa dịch.
+
+## Acceptance criteria
+- [ ] Menu ba ngôn ngữ hoạt động tại các màn hình chính và canvas.
+- [ ] Lưu/khôi phục `jellyfish_language`, xử lý storage lỗi, fallback mã lạ, đồng bộ `html[lang]`.
+- [ ] Ant Design locale theo ngôn ngữ; ngày/giờ định dạng vi-VN.
+- [ ] Năm catalog vi-VN giữ key và placeholder parity; UI labels domain-safe, không dịch nội dung user-generated.
+- [ ] RED → GREEN, lint/unit/typecheck/build, browser QA desktop/mobile, regression zh/en.
+- [ ] Audit toàn bộ 3.864 khóa UI; không đánh dấu done khi còn giá trị chưa Việt hóa hoặc chưa nghiệm thu browser.
+
+## Technical reference
+- `front/src/i18n.ts`, `front/src/main.tsx`, `front/src/layouts/MainLayout.tsx`
+- `front/src/locales/{zh-CN,en-US,vi-VN}`
+- `front/tests/localeResources.test.mjs`, `front/tests/appearancePreferences.browser.mjs`, `front/tests/run-browser.mjs`
+
+## Comments
+- 2026-11-23 — Mở ticket độc lập với gate M0-05/G0-55. Bắt đầu từ `main` HEAD `81ca78ad4b981c49bd227531d903336ba4859a38`, working tree clean, trùng `origin/main`; 3.864 key trong `en-US/ui.json`. Không gọi provider thật hoặc public backend.
+- 2026-11-23 — Thực hiện slice vi-VN: i18next + menu + Ant Design locale + 5 catalog; giữ nguyên key Trung và behavior mặc định zh-CN. Bốn namespace structured: common 7, layout 26, settings 10, notFound 2 leaves có parity. UI: 3.864/3.864 keys hiện diện, 386 giá trị Việt hóa khác en-US, **3.478 giá trị tiếng Anh chưa Việt hóa**, 0 placeholder mismatches. Các giá trị chưa dịch giữ fallback en-US trong vi catalog **chỉ để giữ parity, không tính là đã dịch**. Nội dung creator-generated không bị sửa; chưa dịch đủ tất cả màn hình.
+- 2026-11-23 — RED: `cd front && node --test tests/vietnameseLocale.test.mjs` exit 1, 3/3 failed vì thiếu vi resources/registry (sau khi sửa lỗi cú pháp của chính test). GREEN: `cd front && node --test tests/vietnameseLocale.test.mjs tests/localeResources.test.mjs` exit 0, 5/5 passed. Manifest `node --test front/tests/browserManifest.test.mjs` exit 0 sau khi đăng ký case với default suite.
+- 2026-11-23 — Node `24.21.0` (front/.node-version = 24), pnpm `9.15.9`. `pnpm --dir front run lint:check` exit 0 (16 lỗi baseline cũ, 0 lỗi mới); `pnpm --dir front run test:unit` exit 0 sau sửa manifest; `pnpm --dir front run typecheck` exit 0; `pnpm --dir front run build` exit 0 (cảnh báo cũ: CSS nesting / Browserslist / chunk >500 kB).
+- 2026-11-23 — `node front/tests/run-browser.mjs vietnamese-locale` exit 0: preflight passed, case passed. **Mock API**, Chromium headless: zh-CN → vi-VN → en-US → vi-VN, refresh/persistence, invalid storage, storage blocked, html[lang], Ant Design RangePicker placeholder, role/settings/not-found, user canvas name nguyên dạng, keyboard, desktop 1366×768, mobile 390×844 (DOM không overflow). Ảnh chụp: `front/test-results/browser-h4P1CC/vietnamese-locale/home-vi-{1366x768,390x844}.png` (đã chụp, **chưa có signoff hình ảnh thủ công**).
+- 2026-11-23 — Hai browser suite cũ `appearance-preferences`, `task-center-locale` **exit 1 tại navigation đầu tiên** do timeout 8.000 ms trong cold Vite startup; chưa tới assert hồi quy, không tự tăng timeout hoặc che fail. Browser suite mới kiểm tra hai ngôn ngữ cũ trên home/settings nhưng chưa thay thế full regression của các suite cũ. `git diff --check` exit 0; secret scan `vi-VN/ui.json` có 0 findings. Không gọi provider trả phí, API admin công khai, migration hoặc secrets. Cloudflare preview chưa được kiểm tra.
+- 2026-11-23 — Blockers: 3.478 UI values chưa Việt hóa, thiếu browser QA thật cho canvas/workbench/management/lab/Takes/Cuts, chưa review ảnh thủ công và hai suite cũ chưa chạy thông suốt. **Progress giữ in-progress, không đánh dấu done**.

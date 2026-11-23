@@ -1,0 +1,16 @@
+{
+  "title": "Cài đặt hệ thống",
+  "nickname": "Tên hiển thị",
+  "role": "Vai trò",
+  "save": "Lưu cài đặt",
+  "updated": "Đã cập nhật thông tin cơ bản (bản minh họa).",
+  "roleOptions": {
+    "admin": "Quản trị viên",
+    "operator": "Người vận hành",
+    "guest": "Khách"
+  },
+  "validation": {
+    "nicknameRequired": "Vui lòng nhập tên hiển thị",
+    "roleRequired": "Vui lòng chọn vai trò"
+  }
+}

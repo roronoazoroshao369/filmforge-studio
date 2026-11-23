@@ -91,6 +91,7 @@ function OrdinaryLayout() {
             { type: 'group', key: 'language', label: t('languageMenu'), children: [
               { key: 'zh-CN', label: t('lang.zh'), onClick: () => void i18n.changeLanguage('zh-CN') },
               { key: 'en-US', label: t('lang.en'), onClick: () => void i18n.changeLanguage('en-US') },
+              { key: 'vi-VN', label: t('lang.vi'), onClick: () => void i18n.changeLanguage('vi-VN') },
             ] },
           ] }}><Button ref={accountButton} type="text" className="app-account" aria-label={t('accountMenu')} aria-haspopup="menu" aria-expanded={accountOpen}><Avatar size={28} icon={<UserOutlined />} /></Button></Dropdown>
         </div>

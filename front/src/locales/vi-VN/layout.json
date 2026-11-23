@@ -1,0 +1,38 @@
+{
+  "title": "Jellyfish",
+  "subtitle": "Không gian sáng tạo phim ngắn bằng AI",
+  "welcome": "Chào mừng đến với Jellyfish",
+  "brandHome": "Trang chủ Jellyfish",
+  "accountMenu": "Tài khoản và ngôn ngữ",
+  "languageMenu": "Ngôn ngữ",
+  "primaryNavigation": "Điều hướng chính",
+  "appearance": {
+    "label": "Giao diện",
+    "mist": "Xanh sương mù chuyển sắc",
+    "solid": "Xanh sương mù đơn sắc"
+  },
+  "canvasAppearance": {
+    "label": "Giao diện bảng vẽ",
+    "follow": "Theo giao diện chính",
+    "dark": "Tối cổ điển",
+    "mist": "Xanh sương mù chuyển sắc",
+    "solid": "Xanh sương mù đơn sắc"
+  },
+  "menu": {
+    "home": "Trang chủ",
+    "canvases": "Bảng vẽ",
+    "projects": "Dự án",
+    "management": "Quản lý",
+    "lab": "Phòng thử nghiệm",
+    "settings": "Cài đặt"
+  },
+  "user": {
+    "profile": "Hồ sơ",
+    "logout": "Đăng xuất"
+  },
+  "lang": {
+    "zh": "简体中文",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  }
+}
