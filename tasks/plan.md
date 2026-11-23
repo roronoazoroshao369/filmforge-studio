@@ -1,39 +1,35 @@
-# Implementation Plan — FilmForge Studio
+# FilmForge Implementation Plan — creator-owned IP first
 
-**Source of truth for stage gates:** [Final roadmap](../docs/filmforge/roadmap.md).  
-**Spec/handoff:** [Master handoff](../docs/filmforge/master-handoff.md).  
-**Task tracker:** [Local tracker](../.scratch/filmforge-studio/spec.md), individual tasks in `.scratch/filmforge-studio/issues/` per existing `docs/agents/issue-tracker.md`. No duplicated `tasks/todo.md` checklist.
+**Authoritative current strategy:** [creator-first roadmap](../docs/filmforge/roadmap.md). **Detailed creator intent:** [creator-first](../docs/filmforge/creator-first.md). **Expert simulation:** [council](../docs/filmforge/creator-board-review.md). **Candidate technology:** [tech radar](../docs/filmforge/creator-tech-radar.md).
 
-## Architecture and dependency order
+**Tracker:** local `.scratch/filmforge-studio/issues/` per repo `docs/agents/issue-tracker.md`; do not create duplicate `tasks/todo.md` or GitHub issues without owner decision. `Status` is triage label; `Progress` is separate execution status. No code feature has been implemented by this roadmap update.
 
-Jellyfish main baseline → domain/entity mapping → canonical world/asset state → shot selection/approvals → provider and task safety → 60–90s film → Blender/rig reuse → cross-episode state → multi-episode throughput → cinematic editorial.
+## Two safe parallel streams
 
-All planned capabilities are **pending**, not shipped. Each task is a vertical slice and lands as an independently reviewable commit on main; dependency IDs appear in its ticket. The individual file/scope suggestions are hypotheses until M0 mapping.
+- **Creator/market stream:** **36 → 37 → 38 → 39 → 40**. Owner tests original concepts with existing tools *before* engineering. Manual publishing; no subscriptions without a cap.
+- **Foundation stream:** **01 → 02,03,04 → 05**. Verify Jellyfish locally, code conventions and Go/No-Go. This is not a prerequisite to the no-code creator experiments.
 
-## Roadmap task index
+## Next feature stream, only after evidence
 
-| Phase | IDs | Checkpoint |
+- **C1 Short Studio:** **41–47**, with functional dependencies in each ticket. Goals: approved script/shot, 9:16 original-video output, safe captions/voice, human approval, real cost ledger.
+- **C2 audience/episode bridge:** **48–53**, manual analytics import, creative experiments, 3–10-minute original episode, lite Bible, 4-week economics and creator sign-off.
+- **Future original series/feature film:** retain **06–35**, but **defer**, then re-triage individually after C2. Old M1/M2/M3 titles in Master Handoff are historical — they are not active scheduling priority anymore.
+
+## Active task index
+
+| Phase | IDs | Evidence needed |
 |---|---|---|
-| M0 foundation | 01–05 | Reproducible backend/frontend/worker baseline, GO/NO-GO |
-| M1 canon/assets | 06–11 | Episode state, flashback, immutable pinned asset revision |
-| M2 film cut | 12–18 | 60–90 s approved cut, safe render, reshoot one shot |
-| M3 Blender | 19–23 | 3–5 min shot sequence reusing one rig |
-| M4 continuity | 24–27 | Two episodes, state/asset continuity benchmark |
-| M5 scale | 28–31 | 3–10 episodes, backup, worker go/no-go |
-| M6 feature readiness | 32–35 | OTIO + color/audio/VFX conform and rights gate |
+| M0 technical baseline | 01–05 | API/Worker/UI/tests reproducible, recorded Go/No-Go |
+| C0 original channel | 36–40 | 8–12 distinct uploads, 4-week structured review |
+| C1 short-video factory (creator-only) | 41–47 | 10 approved 9:16 video outputs, project manifest and budget |
+| C2 creator feedback | 48–53 | Real creator analytics, 3–10 minute story, continuation gate |
+| M1/M2 future film foundation | 06–18 | Retriage after C2 and owner go |
+| M3/M4/M5/M6 long film | 19–35 | Later stage technical gates and available resources |
 
-## Checkpoint policy
+## Single-ticket execution
 
-Stop after 2–3 tasks to run affected tests + review diffs; after every milestone run demo and capture evidence. M0 blocker ⇒ no M1. Provider capability gating ⇒ before paid smoke. Character rigs and file provenance ⇒ before continuous episode scale. No multi-worker until testable lease/reconciliation design.
+Choose the **highest-priority unblocked** ticket in active streams; ID order does **not** override phase priorities. Do not start `needs-triage` tickets before categorization; `ready-for-human` needs owner creative/release decision. Write spec, failing tests for behavior changes, smallest code, run appropriate checks, inspect diff, commit on `main`, record exact SHA/evidence and `Progress: done`. Recompute dependencies when advancing future phases. M0 applies existing `TaskService` ownership and single-worker constraints.
 
-## Work sequence
+## Scope exclusions
 
-- Select lowest-number ticket with `Progress: not-started` and `Status: ready-for-agent` whose dependencies are done; triage others before assigning.
-- Record current baseline and implementation plan in ticket Comments.
-- Implement test-first under local conventions.
-- Verify and record SHA/test commands/evidence.
-- Update `Progress` of that ticket; preserve its triage `Status`. Repeat only on explicit subsequent work authorization.
-
-## No hidden assumptions
-
-Unknowns remain: GPU/OS, API entitlements, target animation aesthetic (2D, 3D, hybrid), budget per approved minute, sound/voice licensing, animation team capacity. Defaults favor 3D rig-first pilot and **no paid requests** until confirmed.
+No SaaS accounts, subscription billing, client-commission workflow, ecommerce, 100/day bot, scraping platform footage, automatic publishing, distributed GPU farm or expensive full World State Engine during C0–C1. Personal work capacity, budget and platform eligibility remain unverified; agents must not infer them or pay for services.

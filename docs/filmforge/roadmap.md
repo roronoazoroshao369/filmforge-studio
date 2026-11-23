@@ -1,109 +1,117 @@
-# FilmForge — final outcome roadmap
+# FilmForge Studio — Creator-First Final Roadmap
 
-**Date:** 2026-11-23. **Status:** planned. **Target branch:** `main` only. **Tracking:** `.scratch/filmforge-studio/`.
+**Decision date:** 2026-11-23  
+**Approved product owner strategy:** **A — build films for personal creator-owned channels and original IP; never sell FilmForge software or accept client video production as the core business.**  
+**Status:** roadmap/planning only; features not implemented. **Git branch:** `main` only. **Task status:** `.scratch/filmforge-studio/issues/`, per `docs/agents/triage-labels.md`.
 
-## North star
+## 0. The reason this product exists
 
-**Chi phí/công sức trên mỗi phút footage được duyệt, có continuity đúng, có nguồn gốc tái dựng được.** Không dùng GitHub stars, số provider hoặc số agent làm tiêu chí hoàn thành.
+FilmForge is a career-long independent filmmaking tool to create original animation, especially xianxia/fantasy. **Short video funds long video, but only when measurable audience and economics justify reinvestment.** Starting position: a solo creator with unknown channel performance, budget, hardware, and available time. Do not assume YouTube revenue or guaranteed virality.
 
-**Track A (ưu tiên):** hoạt hình tiên hiệp nhiều season/episode, tái sử dụng nhân vật/rig, environment, trang phục, motion, pháp khí, voice và world state xuyên tập. **Track B (sau):** feature-film 120–180 phút, hybrid CGI/VFX/AI, editorial roundtrip, sound, color, rights.
+**First customer = the creator (owner), first output = original videos published on owned channels, first moat = characters, stories, reusable film assets and an owned audience relationship.**
 
-**Non-goals đến hết M2:** 300 tập tự động, render farm, microservices, thay toàn bộ UI, đổi MySQL sang PostgreSQL, học model foundation, đảm bảo identity tuyệt đối.
+Success has three mutually reinforcing dimensions:
+1. **Art:** original story/characters and an increasing body of IP under clear rights.
+2. **Audience:** evidence of people choosing to watch and returning, not raw generated-video volume.
+3. **Sustainability:** controllable cost and time; protect personal runway even when platform revenue is zero.
 
-## Milestone table
+No B2B/client dashboard, SaaS tenancy, billing/payments, subscription plans, marketplace or auto-posting farm in the critical path.
 
-| Milestone | Đầu ra thực tế | Critical exit gate | Tasks |
+## 1. Portfolio and distribution
+
+**Primary:** one coherent original fantasy/xianxia universe, one flagship YouTube channel. Avoid launching five unrelated channels initially.
+
+- **Discovery Shorts:** ~20–90 seconds: character reveal, duel, consequence, mystery, moral conflict or cliffhanger; narrative must be satisfying and different each time.
+- **Narrative episodes:** initially ~3–10 minutes on the same channel, with actual arc, sound and editing.
+- **Collections/compilations:** only when thoughtfully edited to add value, not duplicate reuploads.
+- **Cross-post:** TikTok/other channels only after rights and regional feature eligibility are checked; do not assume their creator payouts exist in Vietnam.
+- **Revenue:** YouTube Ads/Premium after eligibility; eligible fan funding and potential sponsorship/licensing of own IP as secondary options, not sold software/services.
+
+**No empty template spam.** YouTube reviews overall channel originality, meaningful variation and creative value. AI assistance can be used, but each work must reflect a real story/editorial choice. See [policy source register](policy-sources.md).
+
+## 2. Track ordering
+
+M0 (existing repo baseline) and C0 (creator/market validation outside software) proceed **in parallel**. If a creator experiment can be done manually with existing tools, do **not** wait for a new FilmForge feature.
+
+| Track | Goal/output | Evidence-based exit gate | Tickets |
 |---|---|---|---|
-| **M0 — Foundation / GO-NO-GO** | Fork có bằng chứng chạy và kiểm thử; map domain; legal scan | API/Worker/UI, fake media flow và tests có logs; quyết định Go/No-Go ghi bằng văn bản | 01–05 |
-| **M1 — World & Asset Canon** | Series/Season/Episode, immutable canon state, asset/rig revision | Flashback và retcon không làm sai state cũ; asset version cũ không mất | 06–11 |
-| **M2 — One usable film cut** | Storyboard approval → provider → take → selected cut → MP4 | Pilot 60–90 s, 10–15 shot; reshoot một shot không phá cut; kiểm chứng 2 providers thực nếu có keys | 12–18 |
-| **M3 — Animation-first pilot** | Blender scene/rig bridge, playblast, hybrid effect, reproducible render | 3–5 phút tiên hiệp; 1 rig dùng nhiều shot, costume revision; render manifest | 19–23 |
-| **M4 — Cross-episode continuity** | World events, dependency invalidation, QA, benchmark | Hai tập chia sẻ assets nhưng flashback dùng đúng state cũ; report chi phí/take | 24–27 |
-| **M5 — Production scale** | Batch 3–10 tập, backup/restore, worker capacity, scheduler decision | Không mất job/asset; test recovery; chỉ scale khi đo thấy bottleneck | 28–31 |
-| **M6 — Cinematic feature readiness** | OTIO editorial, color/audio/VFX handoff, rights/provenance | Conform 1 sequence CGI/AI từ sources; round-trip editorial; không tự nhận phim Hollywood đã hoàn thành | 32–35 |
+| **C0: Creator validation** | Original universe, audience hypothesis, rights checklist; 8–12 manually produced/published experiments over ≥4 weeks | Real channel analytics, 48h/7d review by format, documented cost/time, editorial review; choose one content lane or pivot deliberately | **36–40** |
+| **M0: Jellyfish foundation** | Reproducible FastAPI/React/worker baseline, test and license audit | Real commands/logs, Go/No-Go decision (not merely source review) | **01–05** |
+| **C1: Creator Short Studio** | Shot-level story → reference → render → voice/captions → 9:16 export + metadata | 10 accepted videos / repeatable source manifest / 1-shot reshoot; genuine tested output, not mock | **41–47** |
+| **C2: Owned-channel feedback loop** | Manual analytics import, measured experiments, short→longform bridge, mini-series light canon | Evidence from published work; repeat viewers or watch time improve relative to own baseline; financially safe plan | **48–53** |
+| **M1/M2: Film-grade foundations** | Existing FilmForge tasks for canon, asset registry, take/cut and 60–90s film | Activate **after** C1/C2 proves creative workflow and needs deeper continuity; re-triage scope | **06–18 (deferred)** |
+| **M3: Animation pilot** | Blender/rig/scene bridge, repeatable 3–5min animation | Real reusable asset/scene provenance and approved cut | **19–23 (deferred)** |
+| **M4: Cross-episode** | Strong World State Engine and 2-episode continuity | Two episodes, flashbacks/retcon work with pinned assets | **24–27 (deferred)** |
+| **M5: Scale** | 3–10 episodes, recovery, distributed scheduler decision | Sustained production economics, backup restore, measured bottleneck | **28–31 (deferred)** |
+| **M6: Feature film** | OTIO, CGI/VFX, color/audio/rights, feature-film preproduction | Technical conform of film sequence; **not** a claim that Hollywood-quality feature is achieved | **32–35 (deferred)** |
 
-**Không có ngày hoàn thành cố định khi chưa đo năng suất trên M0–M2.** Các con số là *exit target*, không phải cam kết performance.
+**IMPORTANT:** Original ticket IDs 06–35 are preserved for historical continuity, not abandoned or silently reordered. Their status remains triage and Progress remains not-started. Future M1–M6 sequencing is conditional; creator tasks 36–53 take priority after M0, even though their numeric IDs are higher.
 
-## Definition of Done (mỗi task)
+## 3. C0 — Channel / concept validation
 
-1. User-visible outcome hoặc contract rõ ràng; thay đổi giới hạn trong phạm vi task.
-2. Test mới fail trước fix và pass sau fix nếu có logic/behavior thay đổi; test liên quan, lint/typecheck/build có kết quả thực.
-3. Chỉ dùng API client sinh từ OpenAPI; giữ contract TaskService single-writer.
-4. Không bỏ qua test hoặc hạ gate để chuyển xanh; không commit secret/provider key hoặc model weights.
-5. Cập nhật source provenance/license nếu port module; lưu evidence `docs/filmforge/evidence/<milestone>/<task-id>.md` (chỉ tạo khi chạy thật).
-6. Review trên diff, commit vào main bằng tiêu đề `[feat] ...` / `[docs] ...`, cập nhật task Comments và trạng thái.
+**Goal:** discover which original xianxia narrative format is worth making, before building costly automation.
 
-## M0: Foundation — decision gate
+- One creator-owned IP hypothesis: world premise, protagonist, character silhouettes, recurring stakes, visual art direction, music/voice constraints.
+- Test **three creative hypotheses** with 8–12 total original uploads across ≥4 weeks. Suggested categories: character revelation, a self-contained micro-story, and serial mystery/cliffhanger. Do not post near-duplicates.
+- Keep each release manifest: script version, source footage rights, asset/model version, production minutes, direct cost, editorial QA, post URL/date.
+- Check at 48h and 7d (allow time-zone and release-age normalization); record actual impressions/shown-in-feed, viewed vs swiped, average view duration, average percentage viewed, followers gained and returning viewers when available. Never fabricate unavailable metrics.
+- Decide **continue / change hook / change format / pause**. 8–12 uploads cannot prove causality or guarantee a revenue model: treat results as directional evidence, not statistical certainty.
+- No requirement for YPP or revenue to call C0 a learning success. No paid tooling subscriptions or public releases without owner approval and rights check.
 
-**Goal:** Chứng minh fork chạy được trước khi thiết kế engine mới.
-- Ghi SHA upstream/fork, setup env mà không commit credentials.
-- Local Docker MySQL + RustFS, migrate/seed trên database trống; API `/health`, UI và worker.
-- Chạy baseline backend `uv run pytest -q` và `uv run pylint app`, frontend `pnpm --dir front run typecheck` và `pnpm --dir front run build`; ghi exit code/logs, không suy đoán pass.
-- Dùng fixture/fake provider nếu repo hỗ trợ; không chi tiền ở PR đầu.
-- Kiểm tra danh nghĩa `Project → Chapter → Sequence → SceneVersion/ProductionUnit → Task/Take → Cut` và sự kiện/asset đã có.
+**Exit evidence:** ≥8 published distinct original videos, dataset, 3 structured format tests, one retrospective and explicit creator approval. If platform policy blocks content, review rights/originality instead of seeking growth hacks.
 
-**No-Go:** baseline không thể tái lập hoặc yêu cầu sửa phá contract upstream; tạo spike Toonflow hoặc isolated domain shell, ghi ADR, **không tiếp tục M1 một cách mù quáng**.
+## 4. M0 — Reproducible foundation
 
-## M1: Series / World / Asset contracts
+Tickets 01–05 remain unchanged. Execute as a parallel tech workstream. Do not add YouTube upload automations into Jellyfish before current backend task/FFmpeg/scene capabilities are understood. Preserve single `TaskService` writer and one coordinator per database.
 
-- Domain thêm **Series/Season/Episode** (mapping rõ đến Project/Chapter, không duplicating authority).
-- Story canon tách asserted fact/approved fact/retcon; event có `effective_episode`, `effective_scene`, `recorded_at`; flashback/branch xử lý bằng story-time.
-- Asset identity và AssetRevision bất biến; model/rig/voice/wardrobe/prop có checksum, file ID và rights metadata.
-- Ứng dụng chỉ expose một canonical writable service mỗi aggregate; read projections được cache nhưng không là source of truth.
-- Gate: truy vấn đúng trạng thái nhân vật trước/sau đột phá và trong hồi tưởng; sửa asset mới không đổi pinned references cũ.
+## 5. C1 — The actual MVP
 
-## M2: Pilot 60–90s — vertical delivery
+**Input:** original short script or scene from a pinned world/character *lite bible* (no full 300-episode event store required).
 
-- Duyệt screenplay/storyboard/keyframe trước render trả phí.
-- Identity `FilmShot` không trùng `Sequence` hoặc danh tính production unit hiện tại; mapping được duyệt trong M0.
-- Submit/poll/cancel đúng semantics provider; lưu provenance và selected take; cut version độc lập với take.
-- Capability preflight **fail closed** nếu model không hỗ trợ first/last frame, multi-reference hoặc duration.
-- Budget estimate + reserve + reconcile; trường hợp timeout after submission phải đánh dấu unknown và ưu tiên reconcile, không tự tạo lại paid request.
-- Gate: ≥10–15 shot, ≥1 recurring character, accepted cut MP4, một shot reshoot không làm mất history. **2 real providers chỉ được đánh dấu verified với chứng cứ từ cả hai**.
+**Vertical flow:** idea → hook/storyboard → human scene approval → visual references/takes → voice and safe sound/music → captions → vertical (and optional landscape) edit → preview/technical QA → publish package → **owner manually publishes**.
 
-## M3: Animation pilot 3–5 phút
+Requirements:
+- **Story beats and hook:** first seconds communicate intention/conflict; not defaulted to cliché AI slop.
+- **Reusable references:** one character identity, outfit/color and voice reference pinned per video; avoid building complex 3D rig before needed.
+- **Take selection:** 1-shot reshoot with history; retain exact prompt/model/reference/cost and input/output file IDs. Reuse Jellyfish `TaskService`/Take/cut contracts.
+- **Editing and captions:** audio intelligibility, correct Vietnamese subtitles and timing, 9:16 safe title areas, FPS and loudness preflight; optional 16:9 alternative if footage permits.
+- **Human release gate:** originality, rights, AI disclosure if applicable, copyright claims, metadata/title, policy checklist; never auto-post by default.
+- **Provider choice:** **only one actual paid provider in first end-to-end integration**, second only after costs and quality justify it. Fake provider tests prove contracts, not external service reliability.
+- **Cost accounting:** per accepted output, including generation attempts, rejected takes, voice, render/cloud, and time; €/$/VND entered with source FX/date if conversion used.
 
-- Blender subprocess/API bridge external, không merge GPL code vào lõi.
-- Ingest một rig/character asset và scene file có version; generate playblast và still references.
-- Deterministic shot assembly trên pinned rig, camera, action, environment; VFX video model tùy chọn.
-- Gate: cùng rig qua nhiều shot; thay wardrobe revision và xem dependency; pipeline recover sau crash.
+**Exit evidence:** repeatable 10 approved original shorts of distinct substance, 1-shot selective reshoot, publishable format, source manifests, no rights red flags, measured production minutes / accepted minute. Published releases remain owner-controlled.
 
-## M4: Episode 2 / continuity
+## 6. C2 — Independent creator learning/monetization loop
 
-- StoryEvent/episode-state timeline và rule checking: realm, outfit, pháp bảo, quan hệ, vết thương, cảnh.
-- Shot dependency graph chỉ invalidate những shot bị ảnh hưởng; không tự rerender hàng loạt khi chưa duyệt.
-- Human + machine review với evidence cho kết luận; auto score là signal, không phải sự thật.
-- Gate: hai tập độc lập về cut, liên tục về canon/rig; test flashback/retcon.
+- Import creator-owned YouTube Studio analytics from manual CSV first (and only owner-provided data). Do not scrape or assume private analytics are accessible.
+- Review each 48h and 7d cohort; content age, format, duration and audience-source differ, so do not compare Shorts and long-form on raw views alone.
+- Analyze first-seconds hook/retention and viewers' movement to episodes. Preserve baseline and sample size. Split tests are editorial proposals, not causal proof absent randomization.
+- Publish a **3–10 minute original narrative** with meaningful plot, then create a teaser Shorts funnel using same IP. No mere reupload compilation.
+- Track revenue **only when actually paid/verified in account**. Before eligibility, report revenue as 0 / unverified, not estimated RPM. Calculate contribution profit = realized platform and partnership earnings − provider spend − tool fees − hosting − music/asset licenses − other direct costs; report creator labor separately at an explicit opportunity cost.
+- Every 4-week cycle: continue/pivot/stop-loss; avoid platform dependence and personal burnout. Future animation/Blender investment requires consistent creative performance *and* sustainable runway, not an arbitrary monthly view count.
 
-## M5: Multi-episode and operational scale
+**Exit evidence:** 10+ releases and one bridge episode, retrospective with metrics, manual editorial verdict, consent/rights audit, and written personal runway decision. Do not treat C2 as guaranteed positive cash flow.
 
-- Sản xuất 3–10 tập và đo: `approved_minute_cost`, `asset_reuse_ratio`, `reshoot_rate`, `mean_fix_time`, queue wait, GPU occupancy.
-- Archive + object-store retention, restore sample project, quotas.
-- Single worker hiện tại không scale ngang. Thêm distributed orchestration **chỉ sau** benchmark và ADR lease ownership, idempotency, remote-job reconciliation, retry/cancel semantics.
-- OpenCue/render farm là option khi Blender render trở thành bottleneck đo được.
+## 7. Production expansion criteria (career horizon)
 
-## M6: Feature film readiness
+**Xianxia long-running series** remains the core creative ambition, but advanced World State / rigs / render farms start **when the same characters/story need it**. One premium short can prove composition, not 300-episode durability. Move from 2–3 linked shorts to a 3–10 minute episode, then a multi-episode pilot, then 3–10 episodes, then scale. At every gate, require proven audience interest, controlled costs and non-destructive reusable assets.
 
-- OpenTimelineIO exchange; preserve clip source, handles, timebase/fps, cut history.
-- Color pipeline OCIO, audio stems, subtitles, rights/consent and deliverables.
-- Test CGI/VFX/AI hybrid conform cho một sequence trước khi lên kế hoạch 120–180 phút.
-- Dựa vào kỹ sư/đạo diễn/đội VFX để đánh giá cinematic quality, không claim Hollywood qua unit tests.
+**Hollywood-style feature film** remains a distant cinematic research goal. Need sound design, acting, continuity, editorial, licensing and VFX quality; software alone never guarantees it.
 
-## Quality and financial gates
+## 8. Never compromise
 
-| Metric | Cách đo | Trước khi scale |
-|---|---|---|
-| Approved-minutes cost | Total provider+render+human operation spend / approved duration | Có log theo take và cut; target thiết lập sau pilot |
-| Character/state continuity | Sampled shots qua reviewer và rule results | Có false-positive/false-negative report |
-| Asset reuse | Accepted shots sử dụng pinned shared asset / eligible shots | Không giảm do regenerate không cần thiết |
-| Render safety | Paused/restarted/timeout paid jobs and reconciliation | Không tự retry paid create khi outcome chưa rõ |
-| Editorial correctness | Source frame ranges, duration, FPS, timecode round-trip | So sánh source/cut manifest, no silent drift |
+- No misleading “full autopilot earnings” claims; no ads/sponsor income assumed.
+- No fake view/engagement automation, content scraping or repost without rights.
+- No copying web novels, movie footage, voices, music, character likenesses without verified permission.
+- YouTube **2027** planned YPP ads/Premium threshold makes shorts-only economics especially fragile; see official policy references.
+- No code merger based on GitHub stars alone; audit dependency and media/model licenses separately.
+- No money spent on provider keys, cloud GPU or subscriptions without owner-defined budget cap.
+- Protect personal finances: avoid committing essential living funds to unproven video generation experiments.
 
-## Key risks
+## 9. Active queue / governance
 
-**R1:** upstream changes phá domain → pin SHA và backward-compatible additive migration.  
-**R2:** prompt-only continuity drift → rig/asset as canonical representation.  
-**R3:** unknown provider submission double bill → reconcile-first, finite reservation.  
-**R4:** license or actor-voice rights → provenance ledger and human release gate.  
-**R5:** scope explosion → mỗi task có gate; không mở M+1 khi M chưa pass.  
-**R6:** main-only removes code-review isolation → enforce commits, CI, backup tags and explicit reversions.
+**Now:** C0 tickets **36–40** (creator experiments) parallel with M0 tickets **01–05** (technical baseline).  
+**Next:** C1 tickets **41–47** after GO and content hypotheses, then C2 tickets **48–53**.  
+**Later:** resume 06–35 individually only on explicit evidence and creator sign-off.
+
+Read [creator strategy](creator-first.md), [expert council](creator-board-review.md), [technical radar](creator-tech-radar.md), [policy sources](policy-sources.md), [task plan](../../tasks/plan.md). Status: `Status` is triage; `Progress` is execution; completion requires exact commit SHA + tests + actual content artifact/reviewer evidence.
