@@ -1,7 +1,7 @@
 # 01 — Reproduce local environment
 
 Status: ready-for-agent
-Progress: not-started
+Progress: blocked
 Type: task
 Phase: M0
 Priority: P0
@@ -37,3 +37,10 @@ Run empty MySQL/RustFS compose, migrations/seed, API health and UI render; captu
 
 ## Comments
 - 2026-11-23 — Planned from FilmForge roadmap; **not started**. No test or build result claimed.
+- 2026-11-23 — Baseline attempt (ChatGPT runner; **not a Jellyfish runtime result**).
+  - GitHub `main` verified at `2a1b25cd958abc6ffc8ab892ea4f5e0f2ccb497d`; only `main` observed. Actions API: `workflow_runs=[]` for `main`; combined commit statuses empty. CI workflow files use `pull_request`/`merge_group`, not direct `push` to `main`; branch protection disabled.
+  - `git clone --depth=1 --branch main https://github.com/roronoazoroshao369/filmforge-studio.git /mnt/data/filmforge-studio` => exit 128, `Could not resolve host: github.com`.
+  - Runner tools: `git`, `uv`, Python and Node available; `docker`, `podman`, `pnpm` missing. `curl http://127.0.0.1:8000/health` => exit 7, HTTP 000 (no local API responding).
+  - Source-only preflight: `docs/development/guides/local-development.md` requires Compose MySQL/RustFS/migrations/seed before API/worker; `deploy/compose/docker-compose.yml` defines `mysql`, `rustfs`, `backend-migrate`, `backend-seed-system-data`, `backend`, `task-worker`, `front`; `backend/app/main.py` defines `/health`; `backend/app/dev.py` defines `api`, `worker`, `status`. **Not executed**.
+  - RED/GREEN: not applicable (no behavior change). `pytest`, Pylint, typecheck, build, migrations, API/worker/UI smoke: **NOT RUN** (no full checkout/runtime). No paid API calls, GPU rental, upload or credential use.
+  - **Environment-only blocker:** run this ticket on a network-enabled runner with Docker Compose, Python/uv, Node/pnpm and a clean checkout. Do not infer a product failure or mark Done from these observations.
