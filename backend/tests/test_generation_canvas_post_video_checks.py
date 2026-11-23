@@ -27,7 +27,7 @@ async def test_r04_sends_audio_free_video_and_validates_evidence_ranges(runtime,
     subprocess.run(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'color=red:s=64x64:r=10:d=1.5',
                     '-f', 'lavfi', '-i', 'color=blue:s=64x64:r=10:d=1.5', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=3',
                     '-filter_complex', '[0:v][1:v]concat=n=2:v=1:a=0,setpts=PTS+0.2/TB[v]', '-map', '[v]', '-map', '2:a',
-                    '-c:v', 'libx264', '-c:a', 'aac', str(original)], check=True)
+                    '-c:v', 'libx264', '-c:a', 'aac', '-copyts', str(original)], check=True)
     async with runtime.sessions.begin() as db:
         model = await db.get(Model, runtime.model_id)
         model.category, model.name, model.params = 'video', 'doubao-seedance', {}
