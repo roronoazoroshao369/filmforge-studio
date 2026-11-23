@@ -6,7 +6,7 @@ from io import BytesIO
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.db import Base
-from app.core.storage import StoredFileInfo
+from app.core.storage import StoredFileInfo, settings as storage_settings
 from app.models.studio import (
     Chapter,
     FileItem,
@@ -70,7 +70,9 @@ async def test_list_files_paginated_filters_by_keyword() -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_file_detail_includes_usages() -> None:
+async def test_get_file_detail_includes_usages(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(storage_settings, "s3_public_base_url", "https://media.example.test")
+    monkeypatch.setattr(storage_settings, "s3_base_path", "")
     db, engine = await _build_session()
     async with db:
         await _seed_scope_graph(db)
@@ -102,6 +104,7 @@ async def test_get_file_detail_includes_usages() -> None:
         detail = await get_file_detail(db, file_id="f1")
 
         assert detail.id == "f1"
+        assert detail.thumbnail == "https://media.example.test/thumb"
         assert len(detail.usages) == 1
         assert detail.usages[0].project_id == "p1"
         assert detail.usages[0].chapter_id == "c1"
@@ -110,7 +113,9 @@ async def test_get_file_detail_includes_usages() -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_file_meta_updates_fields_and_upserts_usage() -> None:
+async def test_update_file_meta_updates_fields_and_upserts_usage(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(storage_settings, "s3_public_base_url", "https://media.example.test")
+    monkeypatch.setattr(storage_settings, "s3_base_path", "")
     db, engine = await _build_session()
     async with db:
         await _seed_scope_graph(db)
@@ -156,6 +161,7 @@ async def test_update_file_meta_updates_fields_and_upserts_usage() -> None:
 
         assert updated.name == "新名称"
         assert updated.thumbnail_key == "old"
+        assert detail.thumbnail == "https://media.example.test/old"
         assert updated.tags == ["hero", "poster"]
         assert updated_again.id == "f1"
         assert len(detail.usages) == 1

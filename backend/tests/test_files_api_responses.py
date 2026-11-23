@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app.api.v1.routes.studio import files as files_route
+from app.core.storage import settings as storage_settings
 from app.dependencies import get_db
 from app.main import app
 from app.models.studio import FileItem
@@ -96,6 +97,8 @@ def test_delete_file_returns_empty_envelope(client: TestClient, monkeypatch) -> 
 
 
 def test_update_file_meta_returns_success_envelope(client: TestClient, monkeypatch) -> None:
+    monkeypatch.setattr(storage_settings, "s3_public_base_url", "https://media.example.test")
+    monkeypatch.setattr(storage_settings, "s3_base_path", "")
     db = _DummyDB()
     now = datetime.now(UTC)
     file_item = FileItem(
@@ -128,3 +131,4 @@ def test_update_file_meta_returns_success_envelope(client: TestClient, monkeypat
     assert body["message"] == "success"
     assert body["data"]["id"] == "file-1"
     assert body["data"]["name"] == "封面图"
+    assert body["data"]["thumbnail"] == "https://media.example.test/image-thumbnail.png"
