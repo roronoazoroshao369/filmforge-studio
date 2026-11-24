@@ -5,7 +5,7 @@ Progress: not-started
 Type: task
 Phase: C1
 Priority: P1
-Blocked by: 03,04,05,40
+Blocked by: 03,04
 Owner: unassigned
 Target: main
 
@@ -38,3 +38,5 @@ Kiểm tra hiện tại Jellyfish đã có clip export, voice, music, captions, 
 
 ## Comments
 - 2026-11-23 — New Creator-First backlog after owner chose personally owned channel monetization, not SaaS or customer production. **Planning only**; no work completed.
+
+- 2026-11-24 — Scope clarified by autonomous dev direction: read-only source audit and synthetic local fixture demo do not depend on 05 foundation product GO or 40 creator-market approval. Those gates still apply to downstream feature activation/creative acceptance; no real provider or publication. Keep Progress not-started until execution.

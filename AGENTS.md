@@ -1,5 +1,9 @@
 # Jellyfish Agent Guide
 
+## FilmForge session execution (2026-11-24)
+
+Every session must read [session rules](docs/filmforge/session-rules.md), [session plan](docs/filmforge/session-plan.md), [current handoff](docs/filmforge/session-handoff.md) and [roadmap](docs/filmforge/roadmap.md). Use the actual MCP workspace; one independently verifiable goal, main-only commit/push, safe merged-branch cleanup, whole-project audit and persisted handoff. Public dev frontend/clearly labeled isolated fixtures are authorized; private/admin APIs, secrets, paid calls and production data are not. Self-unblock technical work without inventing approval. [Master prompt](docs/filmforge/session-master-prompt.md). This entry supersedes stale execution ordering in historical handoffs, not CONSTRAINTS.md.
+
 ## FilmForge creator-owned strategy (2026-11-23)
 
 **Product boundary — approved by owner:** FilmForge is a personal tool to make **original content for owner's own YouTube/other channels and long-term IP**. Not SaaS, not software for sale, not a client production agency. Current stages [Creator-first C0/C1/C2](docs/filmforge/roadmap.md) run with M0 foundation verification. Prioritize original story/rights, manual publishing, audience feedback, content costs and quality; defer heavy series/film features until gates. Never turn creator work into auto-posting, views/engagement farming or mass generic templates. Creative and spend decisions belong to human owner. Agent must not infer real income, eligibility or channel metrics.

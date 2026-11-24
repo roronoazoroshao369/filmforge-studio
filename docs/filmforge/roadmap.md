@@ -161,6 +161,8 @@ Requirements:
 
 ## 9. Active queue / governance
 
+**Session operating model (2026-11-24):** [rules](session-rules.md), [session plan](session-plan.md), [handoff](session-handoff.md), [master prompt](session-master-prompt.md). One small outcome per session; audit project evidence before and after. Technical audit #41 runs independently of business validation #40 and foundation product approval #05; this is not approval to activate deferred product changes or live providers. Public development uses safe isolated fixtures, not private/admin APIs.
+
 **Now:** C0 tickets **36–40** in parallel with M0; 01–04 and 54 done, 05 requires owner GO, 55 blocked on owner provider/privacy/budget decision, 66 active. G1 56–59 remains unstarted until its gates are met. Prepare the 41 source audit and a bounded local-media vertical-slice proposal; do not bypass triage or owner gates.
 **Next:** C1 tickets **41–47** after GO and content hypotheses, in parallel with G1. G2 = **14–15 + 60–63** after gates, G3 = **64–65** optional; then C2 tickets **48–53** with realized data.  
 **Later:** resume **06–13, 16–35** individually only on explicit evidence and creator sign-off. Tasks **14–15** are specifically promoted to G2.

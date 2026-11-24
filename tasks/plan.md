@@ -4,6 +4,8 @@
 
 **Tracker:** local `.scratch/filmforge-studio/issues/` per repo `docs/agents/issue-tracker.md`; do not create duplicate `tasks/todo.md` or GitHub issues without owner decision. `Status` is triage label; `Progress` is separate execution status. This roadmap update is documentation only; current inherited capabilities and partial vi-VN implementation are recorded in the [verified baseline](../docs/filmforge/roadmap.md#0a-studio-target-and-verified-baseline-2026-11-24).
 
+**Session execution:** [rules](../docs/filmforge/session-rules.md), [bounded queue](../docs/filmforge/session-plan.md), [handoff](../docs/filmforge/session-handoff.md). Audit #41 no longer depends on #05/#40 for read-only source/local fixture work; other gates remain.
+
 ## Two safe parallel streams
 
 - **Creator/market stream:** **36 → 37 → 38 → 39 → 40**. Owner tests original concepts with existing tools *before* engineering. Manual publishing; no subscriptions without a cap.

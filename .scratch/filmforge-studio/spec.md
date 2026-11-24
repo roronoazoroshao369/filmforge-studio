@@ -8,6 +8,8 @@ Source of truth: [roadmap](../../docs/filmforge/roadmap.md), [creator strategy](
 
 **Active:** C0 **36–40** (creative experiment) in parallel with technical M0 **01–05**. **Engineering next after 03/04:** G0 **54–55** → G1 **56–59** → G2 **promoted 14–15 + 60–63** → optional G3 **64–65**. C1 **41–47** runs with G1/G2 if useful, C2 **48–53** after published evidence. **Deferred film:** 06–13 and 16–35; numeric ID is stable identity, not global priority. Numeric ID is stable identity, *not* global work priority.
 
+**2026-11-24 execution update:** [session rules](../../docs/filmforge/session-rules.md) and [session plan](../../docs/filmforge/session-plan.md) govern bounded sessions. #41 audit independent of #05/#40; #66 localization active; #67 session infrastructure. G0-55 real-provider approval remains separate.
+
 ## Ticket record protocol
 
 Each ticket at `.scratch/filmforge-studio/issues/<NN>-<slug>.md` has:

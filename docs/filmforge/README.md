@@ -6,13 +6,15 @@ FilmForge is a **personal creator-owned short-video and original-IP production t
 
 **NEW: MULTI-PROVIDER FREE-FIRST API ROUTING** — owner proposes OmniRoute-like single endpoint for legitimate free/local providers and optional paid models. Internal FilmForge routing is **capability-aware and gateway-agnostic**; no silent paid escalation or async job double-submit. [Design](provider-routing-architecture.md) · [Gateway comparison](provider-gateway-evaluation.md) · [implementation plan](provider-implementation-plan.md) · [New chat complete prompt](new-chat-handoff.md). New tickets **54–65** + promoted **14–15**. **No router has been installed or tested**.
 
+**Every new session:** [Rules](session-rules.md) · [Session plan](session-plan.md) · [Current handoff](session-handoff.md) · [Master prompt](session-master-prompt.md). These supersede stale execution snapshots.
+
 **Start here in this order:**
 1. [Creator-First + Multi-Provider Final Roadmap](roadmap.md) — stages C0/C1/C2, technical M0 in parallel, future film milestones gated.
 2. [Creator Strategy](creator-first.md) — storytelling, analytics, financial safeguards and original IP.
 3. [Simulated Specialist Board](creator-board-review.md) — 10 roles, dissent and conditional verdict.
 4. [Technology Radar](creator-tech-radar.md) — prioritized GitHub repos, commit SHA and license boundaries.
 5. [2026/2027 Platform Rules](policy-sources.md) — YouTube official policy references.
-6. [Local task tracker](../../.scratch/filmforge-studio/spec.md) — 01–66 with dependencies/statuses, including active localization 66 and gated provider 54–65.
+6. [Local task tracker](../../.scratch/filmforge-studio/spec.md) — 01–67 with dependencies/statuses, including active localization 66, gated provider 54–65 and session governance 67.
 7. [Implementation plan](../../tasks/plan.md), [agent guide](agent-execution.md), [main-only workflow](main-only-workflow.md).
 
 **Master handoff v1** is historical context for the long-film destination; [read its strategic override](master-handoff.md). C0 original content testing and M0 repository baseline run in parallel; the inherited runtime has baseline evidence; complete film delivery and approved external generation remain unverified.

@@ -1,5 +1,7 @@
 # Coding agent execution contract
 
+**Current session policy (2026-11-24):** [session rules](session-rules.md), [session plan](session-plan.md), [handoff](session-handoff.md) and [master prompt](session-master-prompt.md) govern session execution. One small goal, independently verifiable; public fixture QA and technical self-unblock are authorized. Older ordering below is historical where inconsistent.
+
 > **Owner strategy override (2026-11-23):** FilmForge creates videos for **owner-controlled channels and original IP only**, not B2B, client projects or SaaS. Read [creator roadmap](roadmap.md), [creator creative strategy](creator-first.md), [policy register](policy-sources.md) and [technology radar](creator-tech-radar.md) before selecting tasks. Creator C0 tickets 36–40 run parallel to M0 01–05. Creator C1 41–47, C2 48–53 precede long-series tasks 06–35. No auto-upload and no paid request without owner-approved budget. Never confuse creating a script/video with actually publishing/monetizing it.
 >
 > **Routing strategy 2026-11-23:** C0/M0 first; after M0 tasks 03/04 execute G0 `54–55`, then G1 `56–59`, G2 `14–15 plus 60–63`, optional G3 `64–65`. Start router development with **text pilot**, verify media per modality; OmniRoute is optional. Full [routing spec](provider-routing-architecture.md), [implementation plan](provider-implementation-plan.md) and [new-chat handoff](new-chat-handoff.md). No free tier/rights assumption, no automatic paid fallback or double remote job creation; no keys/logged secrets.
