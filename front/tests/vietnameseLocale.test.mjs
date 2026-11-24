@@ -55,12 +55,12 @@ test('Vietnamese UI keeps original Chinese keys and exactly preserves all interp
   })) assert.equal(vietnamese[key], expected, key)
 })
 
-test('Vietnamese covers project, files, tasks, providers, labs and navigation source messages', () => {
+test('Vietnamese covers project, files, tasks, providers, labs, assets and navigation source messages', () => {
   const english = catalog('en-US', 'ui')
   const vietnamese = catalog('vi-VN', 'ui')
   const sourceFiles = [
     ...['layouts/navigation.ts', 'layouts/ManagementLayout.tsx'],
-    ...['pages/aiStudio/project', 'pages/aiStudio/files', 'pages/aiStudio/components', 'pages/aiStudio/models', 'pages/aiStudio/experiment']
+    ...['pages/aiStudio/project', 'pages/aiStudio/files', 'pages/aiStudio/components', 'pages/aiStudio/models', 'pages/aiStudio/experiment', 'pages/aiStudio/assets']
       .flatMap(directory => {
         const walk = (relative) => readdirSync(join(src, relative), { withFileTypes: true })
           .flatMap(item => item.isDirectory() ? walk(relative + '/' + item.name)
