@@ -7,7 +7,7 @@ import { browserCleanup, browserOutput } from './browser-runtime.mjs'
 const root = fileURLToPath(new URL('..', import.meta.url))
 process.chdir(root)
 const output = await browserOutput('jellyfish-resource-editor-')
-const server = await createServer({ root, cacheDir: output + '/vite-cache', server: { host: '127.0.0.1', port: 4921, strictPort: true } })
+const server = await createServer({ root, cacheDir: output + '/vite-cache', server: { host: '127.0.0.1', port: 4921, strictPort: true, hmr: false, watch: { ignored: ['**/*'] } } })
 let browser
 const cleanup = browserCleanup(() => ({ browser, server }))
 try {

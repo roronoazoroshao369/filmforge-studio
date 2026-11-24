@@ -8,7 +8,7 @@ const root = fileURLToPath(new URL('..', import.meta.url))
 process.chdir(root)
 const output = await browserOutput('jellyfish-asset-detail-')
 const origin = 'http://127.0.0.1:4810'
-const server = await createServer({ root, cacheDir: output + '/vite-cache', server: { host: '127.0.0.1', port: 4810, strictPort: true, open: false } })
+const server = await createServer({ root, cacheDir: output + '/vite-cache', server: { host: '127.0.0.1', port: 4810, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } } })
 let browser
 const cleanup = browserCleanup(() => ({ browser, server }))
 const types = [['actor', 'actors', '演员'], ['scene', 'scenes', '场景'], ['prop', 'props', '道具'], ['costume', 'costumes', '服装']]
