@@ -23,6 +23,14 @@ Hiệu lực: 2026-11-24. Phạm vi: mọi coding agent trên FilmForge. Owner �
 - Audit toàn dự án cuối phiên: tracker counts/dependency/eligible, locale counts/parity, stage evidence và gap, git SHA/branches, preview, test mới vs lịch sử, actual output/cost. Không dùng số ticket hay số khác en-US làm % sản phẩm.
 - Ghi handoff **trước khi kết thúc**, kèm next slice có acceptance/test commands, lý do chọn, blocker và hướng xử lý; commit/push handoff cùng slice hoặc commit evidence riêng. Không hardcode SHA của chính commit chứa file; ghi SHA baseline và dùng git log để tìm commit chứa handoff. Kiểm tra lại HEAD=origin/main=remote, working tree sạch. Nếu chưa đạt, ghi trạng thái thật và không đánh dấu done.
 
+## Master prompt bắt buộc khi kết phiên (owner directive 2026-11-24)
+
+Mọi session, kể cả docs-only, partial, blocked, mất MCP hoặc không push được, phải bàn giao bằng **MASTER PROMPT — NEW CHAT** đầy đủ ở cuối báo cáo tiếng Việt. Không thay bằng link, câu “tiếp tục” hay lời hứa gửi sau. New Chat phải chạy được mà không cần lịch sử hội thoại hoặc Memory.
+
+1. Sau khi đo kết quả và xác định next goal, cập nhật cả [handoff](session-handoff.md) và [master prompt](session-master-prompt.md). Master prompt là bản copy-ready độc lập: repo/MCP/workspace đã quan sát (xác minh lại khi khởi động), role/mục tiêu/quy tắc, checkpoint SHA đã có, status/tickets và evidence, blocker/giới hạn, một next goal có điều kiện fallback, 2–5 acceptance và lệnh test/verify, quy trình kết phiên bắt buộc này. Không placeholder bắt owner điền, không secrets/private data. Phân biệt snapshot lịch sử với kết quả mới.
+2. Commit/push prompt cùng handoff; kiểm tra main, remote SHA, clean tree. Tránh SHA tự tham chiếu trong file (ghi baseline hoặc commit đã có, hướng dẫn đọc live Git). Khối prompt trả trong chat có thể bổ sung final verified SHA sau push, còn nội dung hành động phải khớp snapshot lưu trên repo.
+3. Báo cáo cuối cùng phải có trạng thái thật, audit, Git/preview/next goal, sau đó toàn văn prompt trong một khối copy được. Nếu không thể cập nhật file/push, nêu rõ điều chưa lưu và vẫn xuất prompt hoàn chỉnh dựa trên checkpoint thực tế. Không coi session đã bàn giao đủ nếu thiếu prompt hiển thị.
+
 ## Autonomous unblock — không tạo gate giả
 
 | Loại | Hành động |
@@ -42,7 +50,7 @@ Owner cho phép duy trì frontend public tại https://filmforge-preview.musashi
 
 ## Definition of Done của một session
 
-Deliverable chạy được theo tiêu chí, bằng chứng RED/GREEN/regression đúng phạm vi, diff review, cập nhật ticket và audit/handoff, push main thành công, branch cleanup an toàn, smoke preview. Nếu có phần chưa đạt: ghi partial/blocked cụ thể và kế hoạch tiếp nối; không tuyên bố toàn milestone done. Mỗi session chỉ một mục tiêu chính; audit/handoff là công việc kết phiên, không phải milestone sản phẩm.
+Deliverable chạy được theo tiêu chí, bằng chứng RED/GREEN/regression đúng phạm vi, diff review, cập nhật ticket và audit/handoff, push main thành công, branch cleanup an toàn, smoke preview. Nếu có phần chưa đạt: ghi partial/blocked cụ thể và kế hoạch tiếp nối; không tuyên bố toàn milestone done. Mỗi session chỉ một mục tiêu chính; audit/handoff là công việc kết phiên, không phải milestone sản phẩm. Definition of Done của bàn giao còn yêu cầu master prompt lưu trên repo và toàn văn prompt trong báo cáo cuối; nếu không thể lưu, phải nêu blocker và vẫn xuất prompt.
 
 ## Handoff format
 

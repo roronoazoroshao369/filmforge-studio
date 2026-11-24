@@ -2,7 +2,7 @@
 
 ## FilmForge session execution (2026-11-24)
 
-Every session must read [session rules](docs/filmforge/session-rules.md), [session plan](docs/filmforge/session-plan.md), [current handoff](docs/filmforge/session-handoff.md) and [roadmap](docs/filmforge/roadmap.md). Use the actual MCP workspace; one independently verifiable goal, main-only commit/push, safe merged-branch cleanup, whole-project audit and persisted handoff. Public dev frontend/clearly labeled isolated fixtures are authorized; private/admin APIs, secrets, paid calls and production data are not. Self-unblock technical work without inventing approval. [Master prompt](docs/filmforge/session-master-prompt.md). This entry supersedes stale execution ordering in historical handoffs, not CONSTRAINTS.md.
+Every session must read [session rules](docs/filmforge/session-rules.md), [session plan](docs/filmforge/session-plan.md), [current handoff](docs/filmforge/session-handoff.md) and [roadmap](docs/filmforge/roadmap.md). Use the actual MCP workspace; one independently verifiable goal, main-only commit/push, safe merged-branch cleanup, whole-project audit and persisted handoff. Public dev frontend/clearly labeled isolated fixtures are authorized; private/admin APIs, secrets, paid calls and production data are not. Self-unblock technical work without inventing approval. Every session close (including partial/blocked) must refresh the persisted [master prompt](docs/filmforge/session-master-prompt.md) and end the user-facing report with its full copy-ready New Chat text; follow session rules when persistence is blocked. This entry supersedes stale execution ordering in historical handoffs, not CONSTRAINTS.md.
 
 ## FilmForge creator-owned strategy (2026-11-23)
 

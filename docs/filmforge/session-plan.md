@@ -37,7 +37,7 @@ S labels are scheduling suggestions, not new tracker tickets or claims of comple
 2. Write exact acceptance and out-of-scope; identify test file and failing assertions (or source/link checks for docs).
 3. Run RED; implement minimal change; GREEN and affected regression; review security, rights, provider cost, compatibility.
 4. Verify artifact/live browser where applicable; record actual results; commit/push tested slice; safely clean merged branches.
-5. Audit whole project, update ticket and handoff; verify final SHA/clean tree. Next session starts from newly observed facts, not this schedule alone.
+5. Audit whole project, update ticket, handoff and copy-ready master prompt; commit/push and verify final SHA/clean tree. End the user-facing report with the full New Chat master prompt, even if partial/blocked. Next session starts from newly observed facts, not this schedule alone.
 
 ## Review focus
 
