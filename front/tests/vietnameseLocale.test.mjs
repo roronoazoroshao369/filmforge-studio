@@ -146,3 +146,57 @@ test('Vietnamese covers all dynamic consistency check task copy fields', () => {
   }
   assert.deepEqual([...fields].filter(([, key]) => vietnamese[key] === english[key]).map(([field]) => field), [])
 })
+
+test('Vietnamese covers all dynamic script simplification fields and the shared cancellation description', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/components/taskCopy.ts'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true)
+  const presets = new Map()
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'TASK_COPY') {
+      const object = node.initializer.expression
+      assert.ok(ts.isObjectLiteralExpression(object))
+      for (const preset of object.properties) {
+        assert.ok(ts.isPropertyAssignment(preset) && ts.isObjectLiteralExpression(preset.initializer))
+        const fields = new Map()
+        for (const property of preset.initializer.properties) {
+          assert.ok(ts.isPropertyAssignment(property) && ts.isStringLiteralLike(property.initializer))
+          fields.set(property.name.getText(ast), property.initializer.text)
+        }
+        presets.set(preset.name.getText(ast), fields)
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  const fields = presets.get('scriptSimplify')
+  assert.deepEqual([...fields.keys()].sort(), [
+    'title', 'runningDescription', 'cancellingDescription', 'successDescription',
+    'cancelledDescription', 'failedDescription', 'startedMessage', 'reusedMessage',
+    'cancelledImmediatelyMessage', 'cancelRequestedMessage', 'runningMessage', 'cancellingMessage',
+  ].sort())
+  const shared = fields.get('cancellingDescription')
+  assert.deepEqual([...presets].filter(([, preset]) => preset.get('cancellingDescription') === shared).map(([name]) => name).sort(),
+    ['scriptSimplify', 'scriptOptimize', 'smartDetect', 'imageGeneration', 'videoGeneration', 'shotFramePrompt', 'shotFrameImage'].sort())
+  const drawer = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const drawerAst = ts.createSourceFile(drawer, read(drawer), ts.ScriptTarget.Latest, true)
+  const used = new Set()
+  function visitDrawer(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(drawerAst) === 'uiText'
+      && node.arguments[0] && ts.isPropertyAccessExpression(node.arguments[0])
+      && node.arguments[0].expression.getText(drawerAst) === 'simplifyTaskCopy') {
+      used.add(node.arguments[0].name.text)
+    }
+    ts.forEachChild(node, visitDrawer)
+  }
+  visitDrawer(drawerAst)
+  assert.deepEqual([...used].sort(), [...fields.keys()].sort())
+  for (const key of fields.values()) {
+    assert.match(key, /\p{Script=Han}/u)
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+  }
+  assert.deepEqual([...fields].filter(([, key]) => vietnamese[key] === english[key]).map(([field]) => field), [])
+})
