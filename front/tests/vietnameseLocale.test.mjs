@@ -256,6 +256,42 @@ test('Vietnamese covers all dynamic source correction fields and the shared canc
 })
 
 
+test('Vietnamese covers Chapter source repair guard and error messages', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true)
+  const expected = [
+    '读取一键优化结果失败', '一键优化失败', '一键优化失败：未返回有效内容',
+    '取消一键优化任务失败', '检查依据已变化或为旧版检查，请重新检查',
+    '请先进行原文一致性检查', '请先明确所选歧义的处理意见，或将其设为暂不确定',
+    '请先选择已确认的原文异常', '检查结果已过期或为旧版检查，请重新检查后修复',
+    '请先输入原文',
+  ]
+  const usage = new Map(expected.map(key => [key, 0]))
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0])
+      && usage.has(node.arguments[0].text)) {
+      const key = node.arguments[0].text
+      usage.set(key, usage.get(key) + 1)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual([...usage.entries()].filter(([, count]) => count > 1).sort(), [
+    ['一键优化失败', 2], ['读取一键优化结果失败', 2], ['请先输入原文', 3],
+  ].sort())
+  assert.equal([...usage.values()].reduce((sum, count) => sum + count, 0), 14)
+  assert.equal(usage.get('请先输入原文'), 3, 'shared by simplify, consistency and optimize')
+  for (const key of expected) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual(expected.filter(key => vietnamese[key] === english[key]), [])
+})
+
 test('Vietnamese covers source repair decision and preview controls', () => {
   const english = catalog('en-US', 'ui')
   const vietnamese = catalog('vi-VN', 'ui')

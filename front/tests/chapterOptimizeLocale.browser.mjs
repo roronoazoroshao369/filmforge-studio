@@ -24,6 +24,7 @@ const checkResult = {
   issues: [{ issue_type: 'fact', classification: 'contradiction', excerpt: raw, description: '需要核对', suggestion: '修复标点' }],
 }
 const repairResult = { optimized_script_text: optimized, source_text: raw, policy_version: 2, review_version: hash('[]'), explanation_version: hash('[]') }
+let issueMode = 'contradiction', resultMode = 'valid'
 const server = await createServer({
   root, cacheDir: join(output, 'vite-cache'),
   server: { host: '127.0.0.1', port, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } },
@@ -52,17 +53,21 @@ async function verifySource(locale, expected = raw) {
   assert.equal(await field.inputValue(), expected)
   assert.equal(await editor().locator('.chapter-editor-name-row input').inputValue(), chapter.title)
 }
-async function prepare(locale) {
+async function prepareChoice(locale, choice = locale.repair) {
   await verifySource(locale)
-  await editor().getByRole('button', { name: locale.check, exact: true }).click()
   const issue = editor().getByRole('combobox', { name: locale.issue, exact: true })
   await editor().getByText(locale.decision, { exact: true }).waitFor()
   await issue.click()
   for (const option of [locale.repair, locale.explain, locale.normal, locale.unknown]) {
     await page.getByText(option, { exact: true }).waitFor({ state: 'visible' })
   }
-  await page.getByText(locale.repair, { exact: true }).click()
+  await page.getByText(choice, { exact: true }).click()
   await verifySource(locale)
+}
+async function prepare(locale) {
+  await verifySource(locale)
+  await editor().getByRole('button', { name: locale.check, exact: true }).click()
+  await prepareChoice(locale)
 }
 async function start(locale, message = locale.started) {
   await verifySource(locale)
@@ -132,9 +137,15 @@ try {
       return route.fulfill({ status: 405, json: { detail: 'Unexpected fixture write' } })
     }
     const check = path.match(/\/film\/tasks\/(check\d+)\/(status|result)$/)
-    if (check) return respond({ task_id: check[1], status: 'succeeded', progress: 100, result: checkResult })
+    if (check) return respond({ task_id: check[1], status: 'succeeded', progress: 100, result: {
+      ...checkResult, issues: checkResult.issues.map(item => ({ ...item, classification: issueMode })),
+    } })
     if (task && path.endsWith('/film/tasks/' + task.task_id + '/status')) return respond(task)
-    if (task && path.endsWith('/film/tasks/' + task.task_id + '/result')) return respond({ ...task, result: repairResult })
+    if (task && path.endsWith('/film/tasks/' + task.task_id + '/result')) {
+      if (resultMode === 'read-error') return route.fulfill({ status: 500, json: { detail: 'Synthetic read failure' } })
+      return respond({ ...task, result: resultMode === 'empty' ? { ...repairResult, optimized_script_text: '  ' }
+        : resultMode === 'stale' ? { ...repairResult, review_version: 'stale-version' } : repairResult })
+    }
     if (path.endsWith('/film/tasks') && url.searchParams.get('target_type') === 'script_optimization'
       && url.searchParams.get('target_id') === 'ch1') {
       const statuses = url.searchParams.getAll('statuses')
@@ -147,11 +158,21 @@ try {
     return respond(data)
   })
   await page.goto(base + '&edit=ch1', { waitUntil: 'domcontentloaded' })
-  await prepare(labels.zh)
+  // The guard must block an optimization request until a source issue is confirmed.
+  await editor().getByRole('button', { name: labels.zh.check, exact: true }).click()
+  await editor().getByRole('button', { name: labels.zh.button, exact: true }).click()
+  await visible('请先选择已确认的原文异常')
+  assert.equal(requests.length, 0)
+  await verifySource(labels.zh)
+  await prepareChoice(labels.zh, labels.zh.repair)
   await start(labels.zh)
   await finish(labels.zh)
   await chooseLanguage(labels.zh, 'Tiếng Việt', 'vi-VN')
-  await prepare(labels.vi)
+  await editor().getByRole('button', { name: labels.vi.check, exact: true }).click()
+  await editor().getByRole('button', { name: labels.vi.button, exact: true }).click()
+  await visible('Hãy chọn một bất thường trong nguyên văn đã xác nhận trước')
+  assert.equal(requests.length, 1)
+  await prepareChoice(labels.vi, labels.vi.repair)
   await start(labels.vi)
   await screenshot('optimize-vi-1366.png')
   await page.setViewportSize({ width: 390, height: 844 })
@@ -175,7 +196,34 @@ try {
   task.status = 'failed'
   await visible('Không tạo được đề xuất sửa nguyên văn. Vui lòng thử lại sau.')
   await verifySource(labels.vi)
+  // Ambiguous findings require an explicit creator instruction before optimization.
+  issueMode = 'ambiguity'
+  await editor().getByRole('button', { name: labels.vi.check, exact: true }).click()
+  await prepareChoice(labels.vi)
+  await editor().getByRole('button', { name: labels.vi.button, exact: true }).click()
+  await visible('Hãy nêu rõ cách xử lý điểm mơ hồ đã chọn hoặc đánh dấu Chưa xác định')
+  assert.equal(requests.length, 4)
+  await verifySource(labels.vi)
+  issueMode = 'contradiction'
+  await editor().getByRole('button', { name: labels.vi.check, exact: true }).click()
+  await prepareChoice(labels.vi)
   await page.setViewportSize({ width: 1366, height: 768 })
+  resultMode = 'empty'
+  await start(labels.vi)
+  task.status = 'succeeded'
+  await visible('Không thể tạo đề xuất sửa: kết quả không có nội dung hợp lệ')
+  await verifySource(labels.vi)
+  assert.equal(await editor().getByText(labels.vi.preview, { exact: true }).count(), 0)
+  resultMode = 'stale'
+  await start(labels.vi)
+  task.status = 'succeeded'
+  await visible(labels.vi.success)
+  const staleCard = editor().locator('.ant-card').filter({ has: page.getByText(labels.vi.preview, { exact: true }) })
+  await staleCard.waitFor()
+  assert.equal(await staleCard.getByRole('button', { name: labels.vi.apply, exact: true }).isDisabled(), true)
+  await verifySource(labels.vi)
+  await staleCard.getByRole('button', { name: labels.vi.discard, exact: true }).click()
+  resultMode = 'valid'
   await start(labels.vi)
   await finish(labels.vi, true, 'repair-preview-vi-1366.png')
   await page.reload({ waitUntil: 'domcontentloaded' })
@@ -183,14 +231,18 @@ try {
   await verifySource(labels.vi)
   await page.setViewportSize({ width: 390, height: 844 })
   await chooseLanguage(labels.vi, 'English', 'en-US')
-  await prepare(labels.en)
+  await editor().getByRole('button', { name: labels.en.check, exact: true }).click()
+  await editor().getByRole('button', { name: labels.en.button, exact: true }).click()
+  await visible('Select a confirmed source issue first')
+  assert.equal(requests.length, 7)
+  await prepareChoice(labels.en, labels.en.repair)
   await start(labels.en)
   await finish(labels.en, true)
   await chooseLanguage(labels.en, '简体中文', 'zh-CN')
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.locator('html[lang="zh-CN"]').waitFor()
   await verifySource(labels.zh)
-  assert.equal(requests.length, 6)
+  assert.equal(requests.length, 8)
   for (const request of requests) {
     assert.equal(request.script_text, raw)
     assert.equal(request.chapter_id, chapter.id)
@@ -203,7 +255,7 @@ try {
   assert.deepEqual(unexpectedWrites, [])
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
-  console.log('Source correction copy: zh/vi/en, active reload, start/reuse/cancel/success/failure, explicit apply/discard, source/title/payload, desktop/mobile, mock-only PASS.')
+  console.log('Source correction copy: zh/vi/en unselected guards, vi ambiguity guard/empty result/stale disabled apply, active reload, start/reuse/cancel/success/failure, explicit apply/discard, source/title/payload, desktop/mobile, mock-only PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output)
