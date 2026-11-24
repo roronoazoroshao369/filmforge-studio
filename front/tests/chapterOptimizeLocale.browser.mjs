@@ -33,9 +33,9 @@ const errors = [], forbidden = [], unexpectedWrites = [], requests = [], cancell
 const cleanup = browserCleanup(() => ({ browser, server }))
 const active = () => task && ['queued', 'running'].includes(task.status)
 const labels = {
-  zh: { account: '用户与语言设置', check: '原文一致性检查', issue: '问题1性质', repair: '原文异常，需要修复', button: '生成修复建议', busy: '生成中', source: '章节原文', started: '已开始原文异常修复建议', running: '建议完成后请核对差异，再明确应用到原文。', success: '原文异常修复建议已完成，请核对建议并明确应用。', preview: '原文异常修复预览', apply: '应用修复稿', discard: '放弃建议' },
-  vi: { account: 'Tài khoản và ngôn ngữ', check: 'Source consistency check', issue: 'Issue 1 type', repair: 'Source issue requires correction', button: 'Generate correction', busy: 'Đang tạo', source: 'Chapter source', started: 'Đã bắt đầu tạo đề xuất sửa nguyên văn', running: 'Khi có đề xuất, hãy đối chiếu khác biệt trước khi quyết định áp dụng vào nguyên văn.', success: 'Đã tạo đề xuất sửa nguyên văn. Hãy xem xét và chủ động áp dụng.', preview: 'Preview source corrections', apply: 'Apply correction', discard: 'Discard suggestion' },
-  en: { account: 'User and language settings', check: 'Source consistency check', issue: 'Issue 1 type', repair: 'Source issue requires correction', button: 'Generate correction', busy: 'Generating', source: 'Chapter source', started: 'Generating source corrections', running: 'Review the differences before applying corrections.', success: 'Source corrections are ready to review and apply.', preview: 'Preview source corrections', apply: 'Apply correction', discard: 'Discard suggestion' },
+  zh: { account: '用户与语言设置', check: '原文一致性检查', issue: '问题1性质', decision: '确认问题性质', repair: '原文异常，需要修复', explain: '正常表述，需要解释', normal: '正常，无需处理', unknown: '暂不确定', button: '生成修复建议', cancel: '取消优化', busy: '生成中', source: '章节原文', started: '已开始原文异常修复建议', running: '建议完成后请核对差异，再明确应用到原文。', success: '原文异常修复建议已完成，请核对建议并明确应用。', preview: '原文异常修复预览', before: '修改前', after: '修改后', apply: '应用修复稿', discard: '放弃建议' },
+  vi: { account: 'Tài khoản và ngôn ngữ', check: 'Source consistency check', issue: 'Loại vấn đề 1', decision: 'Xác định loại vấn đề', repair: 'Nguyên văn có bất thường, cần sửa', explain: 'Cách diễn đạt hợp lệ, cần giải thích', normal: 'Cách diễn đạt hợp lệ, không cần xử lý', unknown: 'Chưa xác định', button: 'Tạo đề xuất sửa', cancel: 'Hủy tạo đề xuất sửa', busy: 'Đang tạo', source: 'Chapter source', started: 'Đã bắt đầu tạo đề xuất sửa nguyên văn', running: 'Khi có đề xuất, hãy đối chiếu khác biệt trước khi quyết định áp dụng vào nguyên văn.', success: 'Đã tạo đề xuất sửa nguyên văn. Hãy xem xét và chủ động áp dụng.', preview: 'Xem trước đề xuất sửa nguyên văn', before: 'Trước khi sửa', after: 'Sau khi sửa', apply: 'Áp dụng bản sửa', discard: 'Bỏ đề xuất' },
+  en: { account: 'User and language settings', check: 'Source consistency check', issue: 'Issue 1 type', decision: 'Confirm issue type', repair: 'Source issue requires correction', explain: 'Valid wording that needs explanation', normal: 'Valid wording. No action needed.', unknown: 'Undecided', button: 'Generate correction', cancel: 'Cancel optimization', busy: 'Generating', source: 'Chapter source', started: 'Generating source corrections', running: 'Review the differences before applying corrections.', success: 'Source corrections are ready to review and apply.', preview: 'Preview source corrections', before: 'Before', after: 'After', apply: 'Apply correction', discard: 'Discard suggestion' },
 }
 const editor = () => page.getByRole('dialog').filter({ has: page.locator('.chapter-editor-name-row') })
 const visible = text => page.getByText(text, { exact: true }).first().waitFor({ state: 'visible' })
@@ -56,8 +56,13 @@ async function prepare(locale) {
   await verifySource(locale)
   await editor().getByRole('button', { name: locale.check, exact: true }).click()
   const issue = editor().getByRole('combobox', { name: locale.issue, exact: true })
+  await editor().getByText(locale.decision, { exact: true }).waitFor()
   await issue.click()
+  for (const option of [locale.repair, locale.explain, locale.normal, locale.unknown]) {
+    await page.getByText(option, { exact: true }).waitFor({ state: 'visible' })
+  }
   await page.getByText(locale.repair, { exact: true }).click()
+  await verifySource(locale)
 }
 async function start(locale, message = locale.started) {
   await verifySource(locale)
@@ -68,17 +73,22 @@ async function start(locale, message = locale.started) {
   await busy.waitFor()
   assert.equal(await busy.count(), 1)
   assert.equal(await busy.isDisabled(), true)
+  await editor().getByRole('button', { name: locale.cancel, exact: true }).waitFor({ state: 'visible' })
 }
-async function finish(locale, apply = false) {
+async function finish(locale, apply = false, evidence) {
   task.status = 'succeeded'
   task.progress = 100
   await visible(locale.success)
   await verifySource(locale)
   const card = editor().locator('.ant-card').filter({ has: page.getByText(locale.preview, { exact: true }) })
   await card.waitFor()
+  await card.getByText(locale.before, { exact: true }).waitFor()
+  await card.getByText(locale.after, { exact: true }).waitFor()
   assert.deepEqual(await card.locator('pre').allTextContents(), [raw, optimized])
   const button = card.getByRole('button', { name: locale.apply, exact: true })
   assert.equal(await button.isEnabled(), true)
+  await card.getByRole('button', { name: locale.discard, exact: true }).waitFor()
+  if (evidence) await screenshot(evidence)
   await card.getByRole('button', { name: apply ? locale.apply : locale.discard, exact: true }).click()
   await card.waitFor({ state: 'hidden' })
   await verifySource(locale, apply ? optimized : raw)
@@ -160,11 +170,18 @@ try {
   await prepare(labels.vi)
   reuseNext = true
   await start(labels.vi, 'Đã khôi phục tác vụ đề xuất sửa nguyên văn của chương hiện tại')
-  await finish(labels.vi)
+  await finish(labels.vi, false, 'repair-preview-vi-390.png')
   await start(labels.vi)
   task.status = 'failed'
   await visible('Không tạo được đề xuất sửa nguyên văn. Vui lòng thử lại sau.')
   await verifySource(labels.vi)
+  await page.setViewportSize({ width: 1366, height: 768 })
+  await start(labels.vi)
+  await finish(labels.vi, true, 'repair-preview-vi-1366.png')
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.locator('html[lang="vi-VN"]').waitFor()
+  await verifySource(labels.vi)
+  await page.setViewportSize({ width: 390, height: 844 })
   await chooseLanguage(labels.vi, 'English', 'en-US')
   await prepare(labels.en)
   await start(labels.en)
@@ -173,7 +190,7 @@ try {
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.locator('html[lang="zh-CN"]').waitFor()
   await verifySource(labels.zh)
-  assert.equal(requests.length, 5)
+  assert.equal(requests.length, 6)
   for (const request of requests) {
     assert.equal(request.script_text, raw)
     assert.equal(request.chapter_id, chapter.id)

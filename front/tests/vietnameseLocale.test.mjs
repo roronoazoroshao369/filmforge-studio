@@ -254,3 +254,30 @@ test('Vietnamese covers all dynamic source correction fields and the shared canc
   }
   assert.deepEqual([...fields].filter(([, key]) => vietnamese[key] === english[key]).map(([field]) => field), [])
 })
+
+
+test('Vietnamese covers source repair decision and preview controls', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const drawer = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const ast = ts.createSourceFile(drawer, read(drawer), ts.ScriptTarget.Latest, true)
+  const expected = [
+    '原文异常修复预览', '修改前', '修改后', '应用修复稿', '放弃建议', '生成修复建议', '取消优化',
+    '原文异常，需要修复', '问题{{value1}}性质', '确认问题性质', '正常表述，需要解释', '正常，无需处理', '暂不确定',
+  ]
+  const used = new Set()
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0])
+      && expected.includes(node.arguments[0].text)) used.add(node.arguments[0].text)
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual([...used].sort(), [...expected].sort())
+  for (const key of expected) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+  }
+  assert.deepEqual(expected.filter(key => vietnamese[key] === english[key]), [])
+})
