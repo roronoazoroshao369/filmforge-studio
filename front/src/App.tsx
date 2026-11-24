@@ -28,6 +28,7 @@ import { chapterCompositionRetired, legacyChapterManagementLocation } from './pa
 import { SceneCanvasWorkbench } from './pages/aiStudio/directing/SceneCanvasWorkbench'
 import { CanvasListPage } from './pages/aiStudio/generationCanvas/CanvasListPage'
 import { GenerationCanvasPage } from './pages/aiStudio/generationCanvas/GenerationCanvasPage'
+import FilmForgeDemoPage from './pages/FilmForgeDemoPage'
 import './App.css'
 
 /** 章节抽屉链接在初始化项目页之前重定向。 */
@@ -50,6 +51,7 @@ const WorkbenchExamples = import.meta.env.DEV ? lazy(() => import('./components/
 
 const router = createBrowserRouter(createRoutesFromElements(
       <>
+        <Route path="/demo/:projectId?" element={<FilmForgeDemoPage />} />
         <Route path="/" element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path="projects" element={<ProjectLobby />} />

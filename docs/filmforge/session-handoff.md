@@ -1,5 +1,19 @@
 # FilmForge — Context handoff hiện hành
 
+**Ngày:** 2026-11-24. **S02 / #68:** local implementation and regression PASS; public deployment blocked/unverified. Baseline `e928e38600cf670214c23a9f37e315d0f4d82f3f`; find commit with `git log -1 -- docs/filmforge/session-handoff.md`.
+
+- MCP working copy /home/mussa/Desktop/filmforge-studio/repo; intermittent connection failures, bounded retries. Baseline HEAD=origin/main=remote, clean, only main.
+- [#68 evidence](../../.scratch/filmforge-studio/issues/68-public-synthetic-project-preview.md): route /demo outside MainLayout, stable linked synthetic entities, generated local MP4/PNG, read-only missing/error states. Source front/src/pages/FilmForgeDemoPage.tsx and App.tsx; registered browser test. No real API/data/paid calls or backend change.
+- RED missing heading exit 1; GREEN dev and built exit 0. Final built desktop/mobile screenshots under front/test-results/s02-built-final; no forbidden requests, page errors or overflow. Node 24.22.3 (CI major 24), pnpm frozen 9.15.9. All 22 unit files via disjoint groups: 156 passed, no fail/skips, exit 0 each; initial Node 22 import error and MCP timeouts resolved without weakening tests. Lint baseline 0 new, typecheck/build PASS; existing build warnings retained. Manifest 169 cases. SHA-256 artifact hashes and commands in #68.
+- Public /demo and / HTTP 200 HTML; public JS index-oa07dzQ0.js != new index-XRfCylZA.js; /demo-media/fixture.mp4 returns HTML instead of MP4. Protected API 403. Existing named preview services inactive on current host; do not create new tunnel, change DNS/ingress or expose admin. Local built proof is not public deploy. Keep #68 in-progress.
+- Baseline audit 68 tickets, 7 done, 1 in-progress, 1 blocked, 59 not-started, eligible 66/68. After #68 progress update verify audit 7 done, 2 in-progress, 1 blocked, 58 not-started. Locale 3864 keys, 1188 different, 2676 equal, parity true; not percentage of product. M0 01–04 and #41/#54/#67 done; #05/#55 gates unchanged. Master/audio/export missing, creator evidence not verified, M1–M6 deferred.
+- Next goal: #68 deployment continuation only on existing authorized preview host/service. Verify actual deployment path/permissions, build locked source, compare public JS/CSS/MP4/PNG bytes against local SHA, confirm correct content-type, run FILMFORGE_DEMO_ORIGIN=https://filmforge-preview.musashishao.tech node tests/filmforgeDemo.browser.mjs with zero forbidden calls/errors, confirm protected 403; then close #68. If same blocker persists, keep #68 in-progress and execute independent #66 Chapter localization slice (read ticket, AST/dynamic TASK_COPY, RED/GREEN, locale parity, browser and regression). Do not change owner gates or spend.
+- Rollback via reviewed revert of S02 changes only; no migrations. Preserve repo-local tool caches and ignored screenshots; no binaries except synthetic fixture media committed. No new provider cost.
+
+---
+
+## Prior S01 handoff (historical)
+
 **Ngày:** 2026-11-24. **S01 continuation / #41:** technical audit done. Baseline `3dcb47f120398430597692cfe7c74d47bade27a7`; find containing commit via git log -1 -- docs/filmforge/session-handoff.md.
 
 - Working copy /home/mussa/Desktop/filmforge-studio/repo; baseline HEAD=origin/main=remote, clean, only main. Intermittent MCP transport; verify state before retrying writes.

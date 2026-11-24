@@ -1,6 +1,7 @@
 {
   "preflight": "preflight.mjs",
   "cases": {
+    "filmforge-demo": { "file": "filmforgeDemo.browser.mjs", "ports": [4897], "timeoutMs": 120000 },
     "canvas-locale": { "file": "canvasLocale.browser.mjs", "ports": [4689, 8689], "timeoutMs": 180000 },
     "vietnamese-locale": { "file": "vietnameseLocale.browser.mjs", "ports": [4783], "timeoutMs": 120000 },
     "task-center-locale": { "file": "taskCenterLocale.browser.mjs", "ports": [4889], "timeoutMs": 90000 },
@@ -175,7 +176,7 @@
   "suites": {
     "independent-canvas": ["independent-canvas"],
     "management-ui": ["resource-editor","image-source","asset-detail", "provider-management", "model-management", "runtime-settings", "management-assets", "prompt-management", "file-management", "agent-management"],
-    "home-project-layout": ["appearance-preferences", "vietnamese-locale", "home-activity", "project-lobby", "project-overview", "project-chapters-ui", "project-actors", "project-roles", "project-resources", "project-files", "project-settings", "management-navigation", "lab-navigation", "legacy-labs"],
+    "home-project-layout": ["filmforge-demo", "appearance-preferences", "vietnamese-locale", "home-activity", "project-lobby", "project-overview", "project-chapters-ui", "project-actors", "project-roles", "project-resources", "project-files", "project-settings", "management-navigation", "lab-navigation", "legacy-labs"],
 
     "lab-ui": ["lab-composer", "lab-navigation", "lab-template-configuration", "lab-image-references", "lab-video-references", "lab-results", "lab-submission-recovery", "lab-draft-guard"],
     "sound-constraint": ["generation-canvas-sound-constraints", "generation-canvas-sound", "generation-canvas-continuity", "generation-canvas-guidance"],

@@ -33,7 +33,7 @@ No B2B/client dashboard, SaaS tenancy, billing/payments, subscription plans, mar
 | Localization | 1,188 of 3,864 UI values differ from English; 2,676 equal values still need classification; ticket 66 in progress. |
 | Provider and release | Native adapter source exists; gateway choice/budget/rights gate 55 blocked, foundation owner GO gate 05 pending. No approved original film master or live provider benchmark evidenced. Direct-main test CI triggers are missing in current frontend/backend workflows. |
 
-S01 continuation: [#41 audit](short-film-path-audit.md) done, 65 focused backend tests passed without skips; export still missing in inspected active path. Tracker count after adding #68: 7 done, 1 in progress, 1 blocked, 59 not started (68 total); not a percentage of product completeness. Public frontend with API blocked is not an authenticated production studio.
+S01 continuation: [#41 audit](short-film-path-audit.md) done, 65 focused backend tests passed without skips; export still missing in inspected active path. Tracker count after starting #68: 7 done, 2 in progress, 1 blocked, 58 not started (68 total); not a percentage of product completeness. Public frontend with API blocked is not an authenticated production studio.
 
 **Engineering acceptance ladder (proposed ordering within existing tickets; no gate/status changes):**
 
@@ -163,7 +163,7 @@ Requirements:
 
 **Session operating model (2026-11-24):** [rules](session-rules.md), [session plan](session-plan.md), [handoff](session-handoff.md), [master prompt](session-master-prompt.md). One small outcome per session; audit project evidence before and after. Technical audit #41 runs independently of business validation #40 and foundation product approval #05; this is not approval to activate deferred product changes or live providers. Public development uses safe isolated fixtures, not private/admin APIs.
 
-**Now:** C0 tickets **36–40** in parallel with M0; 01–04 and 54 done, 05 requires owner GO, 55 blocked on owner provider/privacy/budget decision, 66 active. G1 56–59 remains unstarted until its gates are met. 41 source/fixture audit done; next #68 bounded synthetic public preview, with real admin API still blocked. Re-triage export #42/#46 against current missing master path; do not bypass owner gates.
+**Now:** C0 tickets **36–40** in parallel with M0; 01–04 and 54 done, 05 requires owner GO, 55 blocked on owner provider/privacy/budget decision, 66 active. G1 56–59 remains unstarted until its gates are met. 41 source/fixture audit done;  #68 local synthetic preview built and browser-tested; public deployment pending, real admin API still blocked. Re-triage export #42/#46 against current missing master path; do not bypass owner gates.
 **Next:** C1 implementation tickets **42–47** after GO and content hypotheses; #68 fixture-only can run independently, in parallel with G1. G2 = **14–15 + 60–63** after gates, G3 = **64–65** optional; then C2 tickets **48–53** with realized data.
 **Later:** resume **06–13, 16–35** individually only on explicit evidence and creator sign-off. Tasks **14–15** are specifically promoted to G2.
 
