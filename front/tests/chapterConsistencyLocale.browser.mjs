@@ -19,7 +19,7 @@ const server = await createServer({
   root, cacheDir: join(output, 'vite-cache'),
   server: { host: '127.0.0.1', port, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } },
 })
-let browser, page, task, reuseNext = false
+let browser, page, task, reuseNext = false, queueNext = false
 const errors = [], forbidden = [], unexpectedWrites = [], checks = [], cancellations = []
 const cleanup = browserCleanup(() => ({ browser, server }))
 const active = () => task && ['queued', 'running'].includes(task.status)
@@ -36,6 +36,14 @@ async function chooseLanguage(from, label, lang) {
   await page.goto(base + '&edit=ch1', { waitUntil: 'domcontentloaded' })
 }
 const editor = () => page.getByRole('dialog')
+async function assertCheckingDisabled() {
+  // The loading icon contributes to the accessible name; identify the actual button by its exact visible text.
+  const button = editor().locator('button').filter({ hasText: /^Checking$/ })
+  await button.waitFor({ state: 'visible' })
+  assert.equal(await button.count(), 1)
+  assert.equal(await button.isDisabled(), true)
+  console.log('Active check button:', await button.ariaSnapshot())
+}
 const visible = text => page.getByText(text, { exact: true }).first().waitFor({ state: 'visible' })
 async function verifySource(locale) {
   const field = editor().getByRole('textbox', { name: locale.source, exact: true })
@@ -74,15 +82,18 @@ try {
     const respond = data => route.fulfill({ json: { success: true, code: 200, data } })
     if (req.method() === 'POST' && path.endsWith('/script-processing/check-consistency-async')) {
       checks.push(req.postDataJSON())
-      task = { task_id: 'check' + checks.length, status: 'running', progress: 30, cancel_requested: false }
+      task = { task_id: 'check' + checks.length, status: queueNext ? 'queued' : 'running', progress: queueNext ? 0 : 30, cancel_requested: false }
+      queueNext = false
       const reused = reuseNext
       reuseNext = false
       return respond({ ...task, reused })
     }
     if (req.method() === 'POST' && task && path.endsWith('/film/tasks/' + task.task_id + '/cancel')) {
       cancellations.push(task.task_id)
+      const immediate = task.status === 'queued'
       task.cancel_requested = true
-      return respond({ ...task, effective_immediately: false })
+      if (immediate) task.status = 'cancelled'
+      return respond({ ...task, effective_immediately: immediate })
     }
     if (req.method() !== 'GET') {
       unexpectedWrites.push(req.method() + ' ' + path)
@@ -108,6 +119,8 @@ try {
   await finish(labels.zh)
   await chooseLanguage(labels.zh, 'Tiếng Việt', 'vi-VN')
   await start(labels.vi)
+  await assertCheckingDisabled()
+  assert.equal(checks.length, 2)
   await screenshot('consistency-vi-1366.png')
   await page.setViewportSize({ width: 390, height: 844 })
   await page.reload({ waitUntil: 'domcontentloaded' })
@@ -117,6 +130,9 @@ try {
   await editor().getByRole('button', { name: 'Cancel check', exact: true }).click()
   await visible('Đã yêu cầu hủy kiểm tra tính nhất quán')
   await visible('Đã gửi yêu cầu hủy. Hệ thống sẽ dừng sau bước hiện tại và đồng bộ kết quả mới nhất khi kết thúc.')
+  await assertCheckingDisabled()
+  assert.equal(await editor().getByRole('button', { name: 'Đang hủy', exact: true }).isDisabled(), true)
+  assert.equal(checks.length, 2)
   await screenshot('consistency-vi-390.png')
   task.status = 'cancelled'
   await visible('Đã hủy kiểm tra tính nhất quán.')
@@ -126,22 +142,30 @@ try {
   await start(labels.vi)
   task.status = 'failed'
   await visible('Kiểm tra tính nhất quán thất bại. Vui lòng thử lại.')
+  queueNext = true
+  await start(labels.vi)
+  await editor().getByRole('button', { name: 'Cancel check', exact: true }).click()
+  await visible('Đã hủy kiểm tra tính nhất quán')
+  await visible('Đã hủy kiểm tra tính nhất quán.')
+  await verifySource(labels.vi)
+  await editor().getByRole('button', { name: labels.vi.button, exact: true }).waitFor()
+  assert.equal(await editor().getByRole('button', { name: labels.vi.button, exact: true }).isEnabled(), true)
   await chooseLanguage(labels.vi, 'English', 'en-US')
   await start(labels.en)
   await finish(labels.en)
   await chooseLanguage(labels.en, '简体中文', 'zh-CN')
   await verifySource(labels.zh)
-  assert.equal(checks.length, 5)
+  assert.equal(checks.length, 6)
   for (const check of checks) {
     assert.equal(check.script_text, raw)
     assert.equal(check.chapter_id, chapter.id)
     assert.deepEqual(check.source_explanations, [])
   }
-  assert.deepEqual(cancellations, ['check2'])
+  assert.deepEqual(cancellations, ['check2', 'check5'])
   assert.deepEqual(unexpectedWrites, [])
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
-  console.log('Consistency task copy: zh/vi/en, active reload, start/reuse/cancel/success/failure, creator source, desktop/mobile, mock-only PASS.')
+  console.log('Consistency task copy: zh/vi/en, active reload, start/reuse/deferred and immediate cancel/success/failure, duplicate submission controls, creator source, desktop/mobile, mock-only PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output)

@@ -189,7 +189,7 @@ export function useRelationTaskPolling({
     let cancelled = false
     let timer: number | null = null
 
-    if (!enabled || !task?.taskId || !isActiveTaskStatus(task.status)) {
+    if (!enabled || !task?.taskId) {
       return () => {
         cancelled = true
       }
@@ -199,8 +199,13 @@ export function useRelationTaskPolling({
       try {
         const currentTask = taskRef.current
         if (!currentTask?.taskId) return
-        const nextTask = await loadTaskState(currentTask.taskId)
-        if (cancelled) return
+        // Cancel may return an authoritative terminal state before the next status poll.
+        const nextTask = isActiveTaskStatus(currentTask.status)
+          ? await loadTaskState(currentTask.taskId)
+          : currentTask
+        if (cancelled || taskRef.current?.taskId !== currentTask.taskId) return
+        // An in-flight active poll must not overwrite a terminal cancel response.
+        if (isActiveTaskStatus(currentTask.status) && !isActiveTaskStatus(taskRef.current.status)) return
         if (nextTask && isActiveTaskStatus(nextTask.status)) {
           setTask(nextTask)
           setSettledTask(null)
@@ -228,9 +233,13 @@ export function useRelationTaskPolling({
       }
     }
 
-    timer = window.setTimeout(() => {
+    if (isActiveTaskStatus(task.status)) {
+      timer = window.setTimeout(() => {
+        void poll()
+      }, pollIntervalMs)
+    } else {
       void poll()
-    }, pollIntervalMs)
+    }
 
     return () => {
       cancelled = true

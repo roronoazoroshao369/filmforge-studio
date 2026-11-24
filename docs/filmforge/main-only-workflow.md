@@ -4,6 +4,8 @@
 
 **Owner requirement:** maintain only `main`. We honor the intent for a single long-lived branch, but only commit tested/reviewed changes.
 
+Owner directive 2026-11-24 16:15+07 — Autonomous Engineering Mode: FilmForge agents are authorized to review, stage, commit and push tested, scoped changes to origin/main without per-session owner Git action. Apply DevExpert for engineering/QA; its owner-only Git delivery convention is superseded for this repository by this explicit owner authorization. Do not bypass tool approval, branch protection or security policy; no force-push, hard reset, weakened tests, secret/private IP/production data egress, paid provider, M0-05/G0-55 or creative release/publication approval. Fetch and verify remote, preserve unrelated changes, stage exact reviewed paths, verify tests and secret scan, normal push only, verify clean main and remote SHA. If blocked, preserve patch, isolate independent safe work where possible and report actual blocker; no repeated audit-only loop.
+
 ## State verified 2026-11-23
 
 - Default branch: `main` @ `b1d8add653a97ebe89c2eb8cc7b712af800b8f3c` before FilmForge docs.
