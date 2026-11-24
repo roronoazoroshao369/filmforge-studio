@@ -85,3 +85,20 @@ test('Vietnamese covers project, files, tasks, providers, labs, assets and navig
   }
   assert.deepEqual([...missing].sort(), [], 'Source messages missing Vietnamese translations')
 })
+
+test('Vietnamese covers source explanation editor literal and dynamic status messages', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/chapter/components/SourceExplanationsEditor.tsx'
+  const source = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true)
+  // Conditional location labels and the status variable are not literal call arguments.
+  const keys = new Set(['待定位', '全章', '已确认', '需按文字表达边界复核', '待复核'])
+  function visit(node) {
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0])) keys.add(node.arguments[0].text)
+    ts.forEachChild(node, visit)
+  }
+  visit(source)
+  for (const key of keys) assert.ok(Object.hasOwn(english, key), key)
+  assert.deepEqual([...keys].filter(key => vietnamese[key] === english[key]).sort(), [])
+})
