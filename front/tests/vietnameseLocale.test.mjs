@@ -102,3 +102,47 @@ test('Vietnamese covers source explanation editor literal and dynamic status mes
   for (const key of keys) assert.ok(Object.hasOwn(english, key), key)
   assert.deepEqual([...keys].filter(key => vietnamese[key] === english[key]).sort(), [])
 })
+
+test('Vietnamese covers all dynamic consistency check task copy fields', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/components/taskCopy.ts'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true)
+  const fields = new Map()
+  function visit(node) {
+    if (ts.isPropertyAssignment(node) && node.name.getText(ast) === 'consistencyCheck'
+      && ts.isObjectLiteralExpression(node.initializer)) {
+      for (const property of node.initializer.properties) {
+        assert.ok(ts.isPropertyAssignment(property) && ts.isStringLiteralLike(property.initializer))
+        fields.set(property.name.getText(ast), property.initializer.text)
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual([...fields.keys()].sort(), [
+    'title', 'runningDescription', 'cancellingDescription', 'successDescription',
+    'cancelledDescription', 'failedDescription', 'startedMessage', 'reusedMessage',
+    'cancelledImmediatelyMessage', 'cancelRequestedMessage', 'runningMessage', 'cancellingMessage',
+  ].sort())
+  const drawer = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const drawerAst = ts.createSourceFile(drawer, read(drawer), ts.ScriptTarget.Latest, true)
+  const used = new Set()
+  function visitDrawer(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(drawerAst) === 'uiText'
+      && node.arguments[0] && ts.isPropertyAccessExpression(node.arguments[0])
+      && node.arguments[0].expression.getText(drawerAst) === 'consistencyTaskCopy') {
+      used.add(node.arguments[0].name.text)
+    }
+    ts.forEachChild(node, visitDrawer)
+  }
+  visitDrawer(drawerAst)
+  assert.deepEqual([...used].sort(), [...fields.keys()].sort())
+  for (const key of fields.values()) {
+    assert.match(key, /\p{Script=Han}/u)
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+  }
+  assert.deepEqual([...fields].filter(([, key]) => vietnamese[key] === english[key]).map(([field]) => field), [])
+})
