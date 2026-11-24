@@ -406,7 +406,9 @@ try {
   assert.equal(requests.filter(row => row.path.includes('script-processing')).length, previousTaskRequests)
   const explanationSource = editor.getByRole('textbox', { name: '章节原文', exact: true })
   await explanationSource.fill(' 李哥来到门口，')
-  await explanationSource.press('ControlOrMeta+ArrowLeft')
+  // Home selects the line boundary, independent of platform-specific CJK word segmentation.
+  await explanationSource.press('Home')
+  assert.equal(await explanationSource.evaluate(input => input.selectionStart), 0)
   await explanationSource.press('Shift+ArrowRight')
   assert.equal(await explanationSource.evaluate(input => input.value.slice(input.selectionStart, input.selectionEnd)), ' ')
   assert.equal(await addExplanation.count(), 0)
