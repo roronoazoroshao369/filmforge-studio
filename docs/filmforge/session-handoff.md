@@ -1,5 +1,19 @@
 # FilmForge — Context handoff hiện hành
 
+**Ngày:** 2026-11-24. **S01 continuation / #41:** technical audit done. Baseline `3dcb47f120398430597692cfe7c74d47bade27a7`; find containing commit via git log -1 -- docs/filmforge/session-handoff.md.
+
+- Working copy /home/mussa/Desktop/filmforge-studio/repo; baseline HEAD=origin/main=remote, clean, only main. Intermittent MCP transport; verify state before retrying writes.
+- [Audit and exact commands](short-film-path-audit.md): isolated uv 0.13.9, CPython 3.12.16, FFmpeg/ffprobe 8.1.3, checksums verified, locked 85 resolved/84 installed. First pytest exit 2 due relative paths; corrected absolute paths. Four scoped pytest suites **65 passed in 23.67s**, exit 0, zero skipped/fail. Synthetic reproduction exit 0; H.264 640x360 25fps 50 frames 2s. ASGI/SQLite fixture, no production DB/provider/live storage. No application code changes.
+- #41 done within source/fixture audit; no final master export. [#68 S02](../../.scratch/filmforge-studio/issues/68-public-synthetic-project-preview.md) ready for agent after #41; downstream gates unchanged.
+- Baseline audit exit 0: 67 tickets, 6 done, 2 in-progress, 1 blocked, 58 not-started; eligible 41/66. Measured after close/add (audit exit 0): 68 total, 7 done, 1 in-progress, 1 blocked, 59 not-started; eligible 66/68. Locale 3864 keys, 1188 different, 2676 equal, parity true. Counts not product readiness.
+- M0 01–04 done, 05 pending; #54 done, #55 blocked; #66 active. C1 audit done, export/audio master absent; C0/C2 creator metrics unavailable; M1–M6 deferred. Prior full-app results remain historical. Public curl 200 text/html, protected API 403; no new runtime deployment or browser test.
+- Next goal S02/#68: explicit read-only DEMO, populated project/scene/asset/Take relationships; no real admin/provider requests or mutations; RED/GREEN plus frontend lint/unit/typecheck/build; public browser desktop/mobile, no errors/overflow, HTTP/artifact identity, protected 403. Inspect actual source/test scripts first. Keep partial if deploy unavailable. No owner GO/schema/timeline/export changes.
+- Rollback reviewed revert docs/tracker only. Keep isolated tool cache for subsequent sessions; no binaries committed. No extra branch observed.
+
+---
+
+## Prior S01 partial handoff (historical)
+
 **Ngày:** 2026-11-24 (Asia/Ho_Chi_Minh). **S01 / #41:** partial — source audit + isolated real media proof. Baseline `91e6ace04fd5b7d3f760c5369690c3e0bd49d701`. Find commit containing this handoff via `git log -1 -- docs/filmforge/session-handoff.md`.
 
 - New MCP working copy: `/home/mussa/Desktop/filmforge-studio/repo`, existing GitHub main cloned within allowed root; original /home/devops/vibe path outside current scope. Intermittent transport; bounded retries. Baseline HEAD=origin/main=remote, clean, only main.
