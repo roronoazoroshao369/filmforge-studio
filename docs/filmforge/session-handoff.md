@@ -1,5 +1,21 @@
 # FilmForge — Context handoff hiện hành
 
+**Ngày:** 2026-11-24 (Asia/Ho_Chi_Minh). **S01 / #41:** partial — source audit + isolated real media proof. Baseline `91e6ace04fd5b7d3f760c5369690c3e0bd49d701`. Find commit containing this handoff via `git log -1 -- docs/filmforge/session-handoff.md`.
+
+- New MCP working copy: `/home/mussa/Desktop/filmforge-studio/repo`, existing GitHub main cloned within allowed root; original /home/devops/vibe path outside current scope. Intermittent transport; bounded retries. Baseline HEAD=origin/main=remote, clean, only main.
+- [Audit deliverable](short-film-path-audit.md): source/test map, exact blob synthetic media proof, proposed assembly contract. #41 in-progress, API fixture regression missing. No app changes.
+- Baseline audit CLI exit 0: 67 tickets; 6 done, 1 in-progress, 1 blocked, 59 not-started; eligible 41/66. Locale 3864 keys, 1188 different, 2676 equal, parity true. Post-update CLI exit 0: 6 done, 2 in-progress, 1 blocked, 58 not-started; eligible 41/66; locale unchanged. Node script regression: 17 pass, 0 fail, 0 skipped, exit 0. Counts not product readiness.
+- M0 01–04 done, 05 pending; #54 done, #55 blocked; #66 active. C1 master/export/audio not proven; C0/C2 actual creator analytics unavailable; M1–M6 deferred. No gate, spend or publication approval changed.
+- Public curl exit 0: frontend 200 text/html, protected API 403. No browser/fixture regression or runtime deploy. Host missing uv/FFmpeg/ffprobe/venv; standalone helper proof only. Historical full app tests remain historical.
+- Next goal: finish #41 before S02. Isolated locked backend env, real media tests, Take API fixture + retired export 404 + store isolation pass, exact commands in audit. Audit and commit verified changes, keep ticket open until criteria met. No paid calls or private data.
+- Rollback: reviewed revert docs only; no migrations/runtime change. No extra branch observed; check ancestry before any cleanup.
+
+---
+
+## Prior S00 handoff (historical)
+
+# FilmForge — Context handoff hiện hành
+
 **Ngày:** 2026-11-24 (Asia/Ho_Chi_Minh). **Session S00:** #67, thiết lập quy trình xuyên phiên. **Baseline:** main `7f3b70d4f358b2f8b6a82d9ee632b7e5b08ba165`. Commit chứa handoff này tìm bằng `git log -1 -- docs/filmforge/session-handoff.md`; xác minh SHA mới bằng live Git, không lấy baseline làm HEAD hiện tại.
 
 ## 1. Kết quả và quyết định

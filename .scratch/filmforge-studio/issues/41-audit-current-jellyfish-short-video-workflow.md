@@ -1,7 +1,7 @@
 # 41 — Audit current Jellyfish short-video workflow
 
 Status: ready-for-agent
-Progress: not-started
+Progress: in-progress
 Type: task
 Phase: C1
 Priority: P1
@@ -40,3 +40,5 @@ Kiểm tra hiện tại Jellyfish đã có clip export, voice, music, captions, 
 - 2026-11-23 — New Creator-First backlog after owner chose personally owned channel monetization, not SaaS or customer production. **Planning only**; no work completed.
 
 - 2026-11-24 — Scope clarified by autonomous dev direction: read-only source audit and synthetic local fixture demo do not depend on 05 foundation product GO or 40 creator-market approval. Those gates still apply to downstream feature activation/creative acceptance; no real provider or publication. Keep Progress not-started until execution.
+
+- 2026-11-24 — S01 partial: [audit evidence](../../../docs/filmforge/short-film-path-audit.md). Exact blob synthetic media verification and public HTTP smoke passed; API fixture regression not executed; keep open. No owner gate/spend/runtime change.
