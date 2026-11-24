@@ -12,18 +12,18 @@ FilmForge is a **personal creator-owned short-video and original-IP production t
 3. [Simulated Specialist Board](creator-board-review.md) — 10 roles, dissent and conditional verdict.
 4. [Technology Radar](creator-tech-radar.md) — prioritized GitHub repos, commit SHA and license boundaries.
 5. [2026/2027 Platform Rules](policy-sources.md) — YouTube official policy references.
-6. [Local task tracker](../../.scratch/filmforge-studio/spec.md) — 01–53 with dependencies/statuses, creator tasks 36–53 now priority.
+6. [Local task tracker](../../.scratch/filmforge-studio/spec.md) — 01–66 with dependencies/statuses, including active localization 66 and gated provider 54–65.
 7. [Implementation plan](../../tasks/plan.md), [agent guide](agent-execution.md), [main-only workflow](main-only-workflow.md).
 
-**Master handoff v1** is historical context for the long-film destination; [read its strategic override](master-handoff.md). C0 original content testing and M0 repository baseline run in parallel; current software capabilities are still unverified.
+**Master handoff v1** is historical context for the long-film destination; [read its strategic override](master-handoff.md). C0 original content testing and M0 repository baseline run in parallel; the inherited runtime has baseline evidence; complete film delivery and approved external generation remain unverified.
 
 ---
 
 # FilmForge Studio — nguồn điều phối tài liệu
 
-**Status: PLANNED / NOT YET IMPLEMENTED.** Repository là fork Jellyfish. Chưa xác minh bootstrap hoặc provider thực tế; không được nhầm tài liệu mục tiêu với khả năng đã chạy.
+**Status (24/11/2026):** Repository Jellyfish fork đã bootstrap, có backend/frontend regression và preview frontend-only; vi-VN đang triển khai. Chưa có chứng cứ phim hoàn chỉnh hoặc provider thực tế đã được duyệt. Xem [hiện trạng và thang nghiệm thu](roadmap.md#0a-studio-target-and-verified-baseline-2026-11-24).
 
-FilmForge là AI Film Production OS, ưu tiên sản xuất series hoạt hình tiên hiệp hàng trăm tập bằng asset/rig tái sử dụng; định hướng thứ hai là pipeline CGI/VFX + AI cho phim điện ảnh 120–180 phút.
+FilmForge hướng đến AI Film Production OS cá nhân cho IP tiên hiệp/huyền huyễn nguyên gốc: làm được một phim ngắn hoàn chỉnh trước, rồi tập truyện, series và cuối cùng pipeline CGI/VFX + AI cho phim dài. Mục tiêu dài hạn không phải năng lực đã triển khai.
 
 ## Tài liệu theo thứ tự đọc
 

@@ -9,7 +9,7 @@
 | **P0** | [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) `3482168e8958a73c48656634c750a5ce459224df` | 145k / MIT | Script→visual source→TTS→captions→music→FFmpeg output orchestration, config/asset selection | Do **not** copy one-click “mass volume” editorial philosophy. Prefer port limited stateless assembly utilities only after audit |
 | **P0** | [faster-whisper](https://github.com/SYSTRAN/faster-whisper) `6cb639e70786aea42b9233006ae60eaf07190bdb` | 27k / MIT | Local ASR→word/time-aligned text to human-corrected captions | Need transcription QC, Vietnamese support tests, model-weight license review |
 | **P0** | [PenShot](https://github.com/neopen/story-shot-agent) `54fea30a2d8aea9f47f069545c97899077b5eb20` | 244 / MIT | Scene/shot breakdown as isolated pre-production adapter | Avoid making LLM unapproved director; produce typed draft |
-| **P0** | [Jellyfish](https://github.com/Forget-C/Jellyfish) `b1d8add653a97ebe89c2eb8cc7b712af800b8f3c` | 7.3k / Apache-2.0 | Film projects, Take, canvas, TaskService and current FFmpeg export | Already forked; audit existing flow **before importing duplicate render code** |
+| **P0** | [Jellyfish](https://github.com/Forget-C/Jellyfish) `b1d8add653a97ebe89c2eb8cc7b712af800b8f3c` | 7.3k / Apache-2.0 | Film projects, Take, canvas, TaskService and current FFmpeg media inspection (complete export unverified) | Already forked; audit existing flow **before importing duplicate render code** |
 | **P1 evaluate** | [Remotion](https://github.com/remotion-dev/remotion) `970849fc1921ed7e0c3175132fe9580e8875ab2f` | 75k / **custom commercial license** | React video templates, typography/animated subtitles, programmatic variants | Personal commercial media may be permitted under current free tier; check current **Remotion-specific terms** at adoption; not MIT; don't vendor package source blindly |
 | **P1 evaluate** | [ShortGPT](https://github.com/RayVentura/ShortGPT) `3df4e0f7a422bf7386565d498bf4521a2544c614` | 8.2k / MIT | Automation pipeline patterns, script/voice/edit integration | Experimental; last pushed 2025-02, stale dependencies/architecture; study, don't base product on it |
 | **P1 conditional** | [AI-Youtube-Shorts-Generator](https://github.com/Anil-matcha/AI-Youtube-Shorts-Generator) `8c9ac3103a137e53669aeebfc2af8dbdd810c35a` | 6.5k / MIT | Reframe/scene detection/caption logic from *creator-owned* longform footage | Useful only after own longform library exists; never steal video clips |
@@ -20,6 +20,25 @@
 | **P2 caution** | [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) `a734fa924adb9ffe5ab8472aa5526e469e42a8b5` | 32.5k / AGPL-3.0 | Observe general automation UX only | Direct code merge triggers AGPL analysis; no automatic uploads/revenue promises |
 
 **Additional tools:** [FFmpeg](https://github.com/FFmpeg/FFmpeg) remains first-choice external encoder/editor already in upstream. Official FFmpeg distribution is generally LGPL, but builds with GPL-enabled components have additional obligations; inspect binaries and build flags. OpenAI Whisper MIT is fallback/background reference; faster-whisper is the first local ASR evaluation. Fish-Speech models and Remotion contain license details beyond metadata; require explicit code/weight/output review.
+
+## Film-workstation comparison update (2026-11-24)
+
+Official repository READMEs/LICENSE files reviewed; capabilities below are upstream claims, not local runtime benchmarks. New candidates are not yet pinned/approved for import. Prioritize by missing FilmForge function rather than stars.
+
+| Candidate | Relevant strength | Adoption decision |
+|---|---|---|
+| [Toonflow](https://github.com/HBAI-Ltd/Toonflow-app), [license](https://github.com/HBAI-Ltd/Toonflow-app/blob/master/LICENSE) (MIT at reviewed branch) | Infinite canvas, shot workflow and 3D previs | UX/previs comparison; evaluate narrow modules, not whole frontend |
+| [OpenDirector](https://github.com/ThinkFlowLab/OpenDirector) (Apache-2.0 per README; initial v0.1.0 announced 2026-11-06) | Canvas, shot/media editing, timeline export | Highest-priority editorial UX/source spike; maturity, dependencies and pinned license require review |
+| [AI Video Production Editor](https://github.com/LudwigKienle/ai-video-production-editor) (GPL-3.0-or-later core) | Script-to-edit desktop workflow, color, camera previs | Compare UX and contracts, not direct code merge |
+| [OpenMontage](https://github.com/OpenMontageInc/OpenMontage) (AGPL-3.0) | Agentic production pipelines, composition tooling | Study orchestration and evaluation; separate process only after license/security review |
+| [NodeTool](https://github.com/nodetool-ai/nodetool) (AGPL-3.0) | Agent-accessible creative editors, node workflows, timeline | Study UX/agent tools; no parallel state authority |
+| [waoowaoo](https://github.com/waooAI/waoowaoo/blob/main/README_en.md) (Elastic License 2.0 starting v0.5.0-beta.1) | Script-to-video product workflow | Reference only; do not assume permissive reuse |
+| [OpenTimelineIO](https://github.com/AcademySoftwareFoundation/OpenTimelineIO) (Apache-2.0) | Editorial interchange API, not a renderer | SDK adapter after existing Cut mapping, consider early for interchange contract |
+| [ComfyUI](https://github.com/Comfy-Org/ComfyUI) (GPL-3.0) | Local generation graph and API | Optional isolated local worker, after GPU/model rights tests |
+| [Blender](https://github.com/blender/blender) | Rigging, animation, previs, render and compositing | External executable/project files; later controlled pipeline |
+| [FFmpeg](https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md), [faster-whisper](https://github.com/SYSTRAN/faster-whisper) | Picture/sound assembly and time-aligned transcription | First local-media vertical-slice candidates; review build/model licenses |
+
+Do not merge unrelated histories, replace the Jellyfish database, duplicate Take/Cut/TaskService, or import competing full applications. Keep one FilmForge UI and one authoritative production state. Use isolated service/CLI/SDK adapters or narrowly reviewed permissively licensed modules. A process boundary does not automatically resolve licensing obligations.
 
 ## What to cherry-pick in order
 

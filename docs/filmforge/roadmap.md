@@ -2,7 +2,7 @@
 
 **Decision date:** 2026-11-23  
 **Approved product owner strategy:** **A — build films for personal creator-owned channels and original IP; never sell FilmForge software or accept client video production as the core business.**  
-**Status:** roadmap/planning only; features not implemented. **Git branch:** `main` only. **Task status:** `.scratch/filmforge-studio/issues/`, per `docs/agents/triage-labels.md`.
+**Status (2026-11-24):** inherited Jellyfish runtime and partial Vietnamese localization are implemented; the FilmForge full-production workflow below is a target, not a shipped capability. **Git branch:** `main` only. **Task status:** `.scratch/filmforge-studio/issues/`, per `docs/agents/triage-labels.md`.
 
 ## 0. The reason this product exists
 
@@ -16,6 +16,34 @@ Success has three mutually reinforcing dimensions:
 3. **Sustainability:** controllable cost and time; protect personal runway even when platform revenue is zero.
 
 No B2B/client dashboard, SaaS tenancy, billing/payments, subscription plans, marketplace or auto-posting farm in the critical path.
+
+## 0A. Studio target and verified baseline (2026-11-24)
+
+**North star:** a creator-owned, local-first/hybrid AI film production workstation for original xianxia/fantasy IP, capable of taking a screenplay through continuity-controlled shots, human review, editable picture/sound assembly and a reproducible final master. The creator retains approval of story, spend, takes, release and publication. Shorts are the first proof of the full pipeline, not the permanent product ceiling.
+
+**Evidence at main `8b86bc79c369e1faafb0c5d4ab66bbdd949137fc`:**
+
+| Capability | Current evidence and limitation |
+|---|---|
+| Project, chapter, script, scene division, object preparation, storyboard, scene canvas | Inherited source routes and services exist (`front/src/App.tsx`, `backend/app/services/directing/`); not a newly delivered FilmForge end-to-end film. |
+| Reference assets, character/actor, scene, prop, costume, model management, labs | Existing pages; asset regression and locale checks passed with fixtures. No series-wide immutable asset/canon proof. |
+| Task, Take, Cut and media provenance | Existing `TaskService`, `TaskWorker`, `Take`, `ActiveCut`, `CutTakeReference`, `CutFrame`, `DirectingRevision`; preserve their authority. |
+| Editorial and export | Old chapter composition UI is explicitly retired (`App.tsx`, `directing/chapterNavigation.ts`, `WorkbenchManagementPage.tsx`). FFmpeg/ffprobe code in `services/directing/media.py` probes and extracts frames; it is not evidence of a multi-track final-film export. Dedicated timeline, audio mix, subtitles, conform and master render are unverified. |
+| Runtime and quality | M0-01–04 and G0-54 done; backend baseline ticket 02 records 1485 passed, 62 skipped, exit 0, prior session. Latest frontend full unit/lint/typecheck/build and five targeted browser suites pass (ticket 66). Public preview is frontend-only HTTP 200; admin API 403 by design. |
+| Localization | 1,188 of 3,864 UI values differ from English; 2,676 equal values still need classification; ticket 66 in progress. |
+| Provider and release | Native adapter source exists; gateway choice/budget/rights gate 55 blocked, foundation owner GO gate 05 pending. No approved original film master or live provider benchmark evidenced. Direct-main test CI triggers are missing in current frontend/backend workflows. |
+
+Tracker count: 5 done, 1 in progress, 1 blocked, 59 not started (66 total); not a percentage of product completeness. Public frontend with API blocked is not an authenticated production studio.
+
+**Engineering acceptance ladder (proposed ordering within existing tickets; no gate/status changes):**
+
+1. **Foundation and accessible workstation:** owner decides 05; keep 66 active; fix direct-main quality gates, plan authenticated private local/hybrid operation and backup. Show project pipeline, next action, task status, failures and review state; do not redesign before inspecting populated fixtures.
+2. **One complete short-film slice:** audit 41 first; prove approved source → scene/shot plan → pinned reference → candidate Take → selected Cut → edit → dialogue/music/subtitle → playable 9:16 and 16:9 master using owned or synthetic local media. Map to 42–47, 18 and relevant 33/35; explicitly re-triage deferred tickets with owner before implementation. Test non-destructive replacement of one shot without rerendering unrelated shots. Record source manifest, ffprobe, human review, timing and cost. This technical gate does not require prior channel monetization.
+3. **Safe generation:** G0-55 approval before external gateway or real provider; G1/G2 as already gated. Use offline mocks and local fixtures first; evaluate ComfyUI only after hardware, model rights and cost review. No duplicate Task lifecycle authority.
+4. **Repeatable episodes:** after a short-film proof, use C1/C2 evidence and re-triage M1/M2 for canon, asset revisions, continuity, versioned review; target one approved 3–10 minute episode, then two episodes and only then batch scale.
+5. **Cinematic finishing:** evaluate external Blender previs/rigs, OpenTimelineIO interchange, audio stems, color/OCIO/VFX and conform before feature-length claims. Measure quality, turnaround and cost per accepted minute, not repo size or number of integrations.
+
+The creator/audience track remains parallel. A technical offline proof need not wait for YouTube revenue. Real-provider spend, publication and deferred-feature activation still require existing owner gates.
 
 ## 1. Portfolio and distribution
 
@@ -133,7 +161,7 @@ Requirements:
 
 ## 9. Active queue / governance
 
-**Now:** C0 tickets **36–40** (creator experiments) parallel with M0 tickets **01–05** (technical baseline). After 03/04, **G0 54–55** and **G1 56–59** become active; the router must not delay creative learning.  
+**Now:** C0 tickets **36–40** in parallel with M0; 01–04 and 54 done, 05 requires owner GO, 55 blocked on owner provider/privacy/budget decision, 66 active. G1 56–59 remains unstarted until its gates are met. Prepare the 41 source audit and a bounded local-media vertical-slice proposal; do not bypass triage or owner gates.
 **Next:** C1 tickets **41–47** after GO and content hypotheses, in parallel with G1. G2 = **14–15 + 60–63** after gates, G3 = **64–65** optional; then C2 tickets **48–53** with realized data.  
 **Later:** resume **06–13, 16–35** individually only on explicit evidence and creator sign-off. Tasks **14–15** are specifically promoted to G2.
 

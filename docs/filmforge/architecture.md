@@ -5,13 +5,13 @@
 > MVP workflow: `original idea → script/shot draft → human approval → existing Jellyfish Task/Take/cut → captions/voice → 9:16 export → human release gate → manual upload → owner-supplied aggregate analytics`. Keep provenance and minimal character/style Bible. No SaaS billing, client workflows, automatic content posting or multi-worker render farm in C0/C1.
 
 
-**Status:** proposed extensions, not deployed. **Existing runtime** = Jellyfish application; **future integration** = FilmForge additions.
+**Status (2026-11-24):** existing Jellyfish-derived runtime and partial vi-VN frontend preview; full-film extensions remain proposed. See the [verified baseline and acceptance ladder](roadmap.md#0a-studio-target-and-verified-baseline-2026-11-24).
 
-> **API routing extension:** FilmForge is multi-provider and **free-first within legitimate rights/quality/budget**. The internal policy selector is gateway-independent. Native Jellyfish adapters remain; OmniRoute is only a conditional external gateway for text first, image/video only after tested capability, async polling and costs. [Contract](provider-routing-architecture.md). No paid route on automatic fallback without explicit owner approval.
+> **API routing extension:** FilmForge targets multi-provider routing and **free-first within legitimate rights/quality/budget**. The proposed internal policy selector is gateway-independent. Native Jellyfish adapters remain; OmniRoute is only a conditional external gateway for text first, image/video only after tested capability, async polling and costs. [Contract](provider-routing-architecture.md). No paid route on automatic fallback without explicit owner approval.
 
 ## Source-of-truth ownership
 
-- **Current Jellyfish**: `Project / Chapter / Sequence` (story scene), existing SceneVersion/ProductionUnit/SceneTakeRecord; `TaskService` is only writer for `Task` lifecycle, `TaskWorker` executes jobs, `FileItem` is immutable file identity. Consult `../development/reference/data-model.md` and `../development/architecture/task-execution.md`.
+- **Current Jellyfish**: `Project / Chapter / Sequence` (story scene), existing mapped `DirectingRevision / Take / ActiveCut / CutTakeReference / CutFrame`; historical docs mentioning SceneVersionRecord or SceneTakeRecord are not proof of mapped tables; `TaskService` is only writer for `Task` lifecycle, `TaskWorker` executes jobs, `FileItem` is immutable file identity. Consult `../development/reference/data-model.md` and `../development/architecture/task-execution.md`.
 - **FilmForge planned**: `Series / Season / Episode` hierarchical identity, `StoryCanon` / `StoryEvent`, `AssetRevision`, `FilmShotPlan`, `ShotTakeLink`, `ReviewDecision`. Mapping to existing entities **must be validated in M0** before creating new tables. Do not introduce duplicate truth for `Take` / `Cut` or rewrite existing scene APIs.
 - **Render backends**: external video API, ComfyUI service, Blender external executable. Their generated files are content-addressed or checksum-verified and recorded through existing file ownership model.
 
@@ -21,7 +21,7 @@
 2. Approved canon + scene state + pinned asset revision → shot plan → storyboard approval.
 3. Provider capability preflight and budget approval → TaskService submission → external worker (initial single coordinator).
 4. Remote ID/result → immutable asset/media record → Take → QC evidence → human selection.
-5. Selected Take → versioned Cut/Timeline → FFmpeg export / later OTIO interchange.
+5. Selected Take → existing Cut state → **planned** editorial timeline, audio/subtitles and FFmpeg master export / later OTIO interchange. The old chapter composition frontend route is retired; the present frame extraction/probing helpers are not an export pipeline.
 
 ## Rules that must survive upstream updates
 

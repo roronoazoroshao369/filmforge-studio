@@ -2,18 +2,18 @@
 
 **Authoritative current strategy:** [creator-first roadmap](../docs/filmforge/roadmap.md). **Detailed creator intent:** [creator-first](../docs/filmforge/creator-first.md). **Expert simulation:** [council](../docs/filmforge/creator-board-review.md). **Candidate technology:** [tech radar](../docs/filmforge/creator-tech-radar.md).
 
-**Tracker:** local `.scratch/filmforge-studio/issues/` per repo `docs/agents/issue-tracker.md`; do not create duplicate `tasks/todo.md` or GitHub issues without owner decision. `Status` is triage label; `Progress` is separate execution status. No code feature has been implemented by this roadmap update.
+**Tracker:** local `.scratch/filmforge-studio/issues/` per repo `docs/agents/issue-tracker.md`; do not create duplicate `tasks/todo.md` or GitHub issues without owner decision. `Status` is triage label; `Progress` is separate execution status. This roadmap update is documentation only; current inherited capabilities and partial vi-VN implementation are recorded in the [verified baseline](../docs/filmforge/roadmap.md#0a-studio-target-and-verified-baseline-2026-11-24).
 
 ## Two safe parallel streams
 
 - **Creator/market stream:** **36 → 37 → 38 → 39 → 40**. Owner tests original concepts with existing tools *before* engineering. Manual publishing; no subscriptions without a cap.
 - **Foundation stream:** **01 → 02,03,04 → 05**. Verify Jellyfish locally, code conventions and Go/No-Go. This is not a prerequisite to the no-code creator experiments.
 
-## Gateway implementation track — new highest engineering priority after baseline
+## Gateway implementation track — gated, not a prerequisite for offline film assembly
 
 **G0 54–55** (audit/compare) after technical 03/04; **G1 56–59** (typed capabilities, legitimate free-first filter, route dry-run, text gateway), then **G2 promoted 14–15 and new 60–63** (verified image/video, sticky async remote ID, budget, UI), then optional **G3 64–65** (local workers and benchmark).
 
-**Do not postpone creator C0 videos for router development**; C1 41–47 can start with existing Jellyfish direct providers and move to verified router paths later. Text gateway is a first experiment, not a mandatory omni-media dependency. Full [provider implementation plan](../docs/filmforge/provider-implementation-plan.md), [policy](../docs/filmforge/provider-routing-architecture.md), [new chat prompt](../docs/filmforge/new-chat-handoff.md).
+**Do not postpone creator C0 videos for router development**; C1 41–47 can prove assembly with owned/synthetic media before any live provider approval, then use existing Jellyfish direct adapters only after applicable rights, privacy and spend gates. Text gateway is a first experiment, not a mandatory omni-media dependency. Full [provider implementation plan](../docs/filmforge/provider-implementation-plan.md), [policy](../docs/filmforge/provider-routing-architecture.md), [new chat prompt](../docs/filmforge/new-chat-handoff.md).
 
 
 
@@ -25,7 +25,8 @@
 
 | Phase | IDs | Evidence needed |
 |---|---|---|
-| M0 technical baseline | 01–05 | API/Worker/UI/tests reproducible, recorded Go/No-Go |
+| M0 technical baseline | 01–05 | 01–04 done; owner 05 pending |
+| UI localization | 66 | In progress: classify every UI string; three-language regression |
 | G0 multi-provider audit | 54–55 | Existing provider code traced, OmniRoute evaluated and legal pilot chosen |
 | G1 free-first text route | 56–59 | Capabilities, eligible-free policy, deterministic routing + one text gateway trial |
 | G2 safe multimodal route | 14–15, 60–63 | Preflight, sticky async jobs, no unapproved spend, routing UI |
@@ -38,7 +39,7 @@
 
 ## Single-ticket execution
 
-Choose the **highest-priority unblocked** ticket in active C0/M0/G0/G1 streams; ID order does **not** override phase priorities. Do not start `needs-triage` tickets before categorization; `ready-for-human` needs owner creative/release decision. Write spec, failing tests for behavior changes, smallest code, run appropriate checks, inspect diff, commit on `main`, record exact SHA/evidence and `Progress: done`. Recompute dependencies when advancing future phases. M0 applies existing `TaskService` ownership and single-worker constraints.
+Choose the **highest-priority unblocked** ticket in active C0/M0/G0/66 streams; G1 requires its existing gates; ID order does **not** override phase priorities. Do not start `needs-triage` tickets before categorization; `ready-for-human` needs owner creative/release decision. Write spec, failing tests for behavior changes, smallest code, run appropriate checks, inspect diff, commit on `main`, record exact SHA/evidence and `Progress: done`. Recompute dependencies when advancing future phases. M0 applies existing `TaskService` ownership and single-worker constraints.
 
 ## Scope exclusions
 
