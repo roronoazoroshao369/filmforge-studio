@@ -486,3 +486,69 @@ test('Vietnamese covers Chapter consistency result headers and task controls', (
   assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
   for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
 })
+
+test('Vietnamese covers every finite Chapter consistency issue type and classification branch', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const maps = {
+    issue_type: { language: '语言表达', semantics: '语义表达', character_confusion: '身份指代', spatial: '文字空间关系', action_time: '文字时序', prop_state: '道具描述', fact: '文本事实' },
+    classification: { contradiction: '明确矛盾', ambiguity: '待确认歧义', optional: '可选补充' },
+  }
+  const fallbacks = { issue_type: '文字问题', classification: '待确认' }
+  const expected = new Map([
+    ['语言表达', 'Cách diễn đạt'],
+    ['语义表达', 'Ngữ nghĩa'],
+    ['身份指代', 'Danh tính và cách quy chiếu nhân vật'],
+    ['文字空间关系', 'Quan hệ không gian theo văn bản'],
+    ['文字时序', 'Trình tự thời gian trong văn bản'],
+    ['道具描述', 'Mô tả đạo cụ'],
+    ['文本事实', 'Dữ kiện trong văn bản'],
+    ['文字问题', 'Vấn đề trong văn bản'],
+    ['明确矛盾', 'Mâu thuẫn rõ ràng'],
+    ['待确认歧义', 'Điểm mơ hồ cần xác nhận'],
+    ['可选补充', 'Chi tiết bổ sung tùy chọn'],
+    ['待确认', 'Chờ xác nhận'],
+    ['· 问题', '· Vấn đề'],
+  ])
+  const found = new Map()
+  let suffixCount = 0
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText') {
+      const arg = node.arguments[0]
+      if (arg && ts.isStringLiteralLike(arg) && arg.text === '· 问题') suffixCount++
+      if (arg && ts.isBinaryExpression(arg) && arg.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken
+        && ts.isElementAccessExpression(arg.left) && ts.isStringLiteralLike(arg.right)) {
+        const selector = arg.left.argumentExpression
+        if (ts.isBinaryExpression(selector) && ts.isPropertyAccessExpression(selector.left)
+          && selector.left.expression.getText(ast) === 'it' && Object.hasOwn(maps, selector.left.name.text)) {
+          const field = selector.left.name.text
+          let obj = arg.left.expression
+          while (ts.isParenthesizedExpression(obj) || ts.isAsExpression(obj)) obj = obj.expression
+          assert.ok(ts.isObjectLiteralExpression(obj), field)
+          assert.ok(!found.has(field), field)
+          const entries = obj.properties.map(prop => {
+            assert.ok(ts.isPropertyAssignment(prop) && ts.isStringLiteralLike(prop.initializer), field)
+            return [prop.name.getText(ast), prop.initializer.text]
+          })
+          assert.deepEqual(Object.fromEntries(entries), maps[field])
+          assert.equal(arg.right.text, fallbacks[field])
+          found.set(field, true)
+        }
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual([...found.keys()].sort(), Object.keys(maps).sort())
+  assert.equal(suffixCount, 1)
+  assert.deepEqual([...expected.keys()].sort(), [...Object.values(maps).flatMap(Object.values), ...Object.values(fallbacks), '· 问题'].sort())
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+  for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
+})

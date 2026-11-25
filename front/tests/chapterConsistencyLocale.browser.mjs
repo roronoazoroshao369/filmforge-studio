@@ -19,10 +19,21 @@ const server = await createServer({
   root, cacheDir: join(output, 'vite-cache'),
   server: { host: '127.0.0.1', port, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } },
 })
-let browser, page, task, reuseNext = false, queueNext = false, issueNext = false, readErrorNext = false, legacyNext = false
+let browser, page, task, reuseNext = false, queueNext = false, issueNext = false, readErrorNext = false, legacyNext = false, allTypesNext = false
 const errors = [], forbidden = [], unexpectedWrites = [], checks = [], cancellations = []
 const cleanup = browserCleanup(() => ({ browser, server }))
 const active = () => task && ['queued', 'running'].includes(task.status)
+const issueTypes = [
+  ['language', 'contradiction', 'Cách diễn đạt', 'Mâu thuẫn rõ ràng'],
+  ['semantics', 'ambiguity', 'Ngữ nghĩa', 'Điểm mơ hồ cần xác nhận'],
+  ['character_confusion', 'optional', 'Danh tính và cách quy chiếu nhân vật', 'Chi tiết bổ sung tùy chọn'],
+  ['spatial', 'contradiction', 'Quan hệ không gian theo văn bản', 'Mâu thuẫn rõ ràng'],
+  ['action_time', 'ambiguity', 'Trình tự thời gian trong văn bản', 'Điểm mơ hồ cần xác nhận'],
+  ['prop_state', 'optional', 'Mô tả đạo cụ', 'Chi tiết bổ sung tùy chọn'],
+  ['fact', 'contradiction', 'Dữ kiện trong văn bản', 'Mâu thuẫn rõ ràng'],
+  ['future_type', 'future_class', 'Vấn đề trong văn bản', 'Chờ xác nhận'],
+  [undefined, undefined, 'Vấn đề trong văn bản', 'Chờ xác nhận'],
+]
 const labels = {
   zh: { account: '用户与语言设置', button: '原文一致性检查', source: '章节原文', started: '已开始一致性检查', running: '检查完成后会自动展示最新的一致性检查结果。', success: '一致性检查已完成，结果已自动更新。', empty: '未发现原文一致性问题', busy: '检查中', cancel: '取消检查', result: '原文一致性检查结果', found: '发现问题', none: '无问题', count: '问题：', last: '上次检查' },
   vi: { account: 'Tài khoản và ngôn ngữ', button: 'Kiểm tra tính nhất quán của nguyên văn', source: 'Chapter source', started: 'Đã bắt đầu kiểm tra tính nhất quán', running: 'Kết quả kiểm tra tính nhất quán sẽ tự động hiển thị khi kiểm tra hoàn tất.', success: 'Đã kiểm tra tính nhất quán; kết quả được cập nhật.', empty: 'Không phát hiện vấn đề về tính nhất quán của nguyên văn', busy: 'Đang kiểm tra', cancel: 'Hủy kiểm tra', result: 'Kết quả kiểm tra tính nhất quán của nguyên văn', found: 'Phát hiện vấn đề', none: 'Không có vấn đề', count: 'Số vấn đề: ', last: 'Lần kiểm tra gần nhất' },
@@ -120,8 +131,10 @@ try {
     if (task && path.endsWith('/film/tasks/' + task.task_id + '/status')) return respond(task)
     if (task && path.endsWith('/film/tasks/' + task.task_id + '/result')) {
       if (readErrorNext) return route.fulfill({ status: 500, json: { detail: 'Synthetic result read error' } })
-      const issues = issueNext ? [{ issue_type: 'fact', classification: 'contradiction', excerpt: raw, description: 'Synthetic issue' }] : []
-      return respond({ ...task, result: { check_scope: legacyNext ? 'character_confusion' : 'source_consistency', has_issues: issueNext, issues, summary: '无混淆' } })
+      const issues = allTypesNext
+        ? issueTypes.map(([issue_type, classification], i) => ({ issue_type, classification, excerpt: raw, description: 'Synthetic classification ' + (i + 1) }))
+        : issueNext ? [{ issue_type: 'fact', classification: 'contradiction', excerpt: raw, description: 'Synthetic issue' }] : []
+      return respond({ ...task, result: { check_scope: legacyNext ? 'character_confusion' : 'source_consistency', has_issues: issueNext || allTypesNext, issues, summary: '无混淆' } })
     }
     if (path.endsWith('/film/tasks') && url.searchParams.get('target_type') === 'consistency_check'
       && url.searchParams.get('target_id') === 'ch1') {
@@ -174,6 +187,29 @@ try {
   await start(labels.vi)
   await finish(labels.vi, true)
   await screenshot('consistency-issues-vi-390.png')
+  await page.setViewportSize({ width: 1366, height: 768 })
+  await start(labels.vi)
+  allTypesNext = true
+  task.status = 'succeeded'
+  task.progress = 100
+  await visible('Phát hiện 9 vấn đề về tính nhất quán của nguyên văn')
+  const classificationCard = editor().locator('.ant-card').filter({ has: page.getByText(labels.vi.result, { exact: true }) })
+  await classificationCard.locator('.ant-tag').getByText('Số vấn đề: 9', { exact: true }).waitFor()
+  const rows = classificationCard.locator('.ant-list-item')
+  assert.equal(await rows.count(), issueTypes.length)
+  for (const [index, [, , title, classification]] of issueTypes.entries()) {
+    const row = rows.nth(index)
+    await row.getByText(title + ' · Vấn đề ' + (index + 1), { exact: true }).waitFor()
+    await row.locator('.ant-tag').getByText(classification, { exact: true }).waitFor()
+    await row.getByText('Synthetic classification ' + (index + 1), { exact: true }).waitFor()
+  }
+  await verifySource(labels.vi)
+  await screenshot('consistency-classifications-vi-1366.png')
+  await page.setViewportSize({ width: 390, height: 844 })
+  await screenshot('consistency-classifications-vi-390.png')
+  await verifySource(labels.vi)
+  allTypesNext = false
+  await page.setViewportSize({ width: 1366, height: 768 })
   await start(labels.vi)
   readErrorNext = true
   task.status = 'succeeded'
@@ -186,7 +222,7 @@ try {
   await finish(labels.en)
   await chooseLanguage(labels.en, '简体中文', 'zh-CN')
   await verifySource(labels.zh)
-  assert.equal(checks.length, 8)
+  assert.equal(checks.length, 9)
   for (const check of checks) {
     assert.equal(check.script_text, raw)
     assert.equal(check.chapter_id, chapter.id)
@@ -196,7 +232,7 @@ try {
   assert.deepEqual(unexpectedWrites, [])
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
-  console.log('Consistency task copy: zh/vi/en, active reload, start/reuse/deferred and immediate cancel/success/failure, duplicate submission controls, current/legacy headers, last-check timestamp, empty/issue results and read error, creator source, desktop/mobile, mock-only PASS.')
+  console.log('Consistency task copy: zh/vi/en, active reload, start/reuse/deferred and immediate cancel/success/failure, duplicate submission controls, current/legacy headers, last-check timestamp, all finite classification branches and fallback results, empty/issue results and read error, creator source, desktop/mobile, mock-only PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output)
