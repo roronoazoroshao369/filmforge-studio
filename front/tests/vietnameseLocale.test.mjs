@@ -837,3 +837,40 @@ test('Vietnamese covers shared workspace save-returned-false guard', () => {
   assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
   for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
 })
+
+
+test('Vietnamese covers Chapter existing-editor draft name', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const key = '章节编辑'
+  const file = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const names = []
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useWorkspaceDraft') {
+      const draft = node.arguments[0]
+      if (draft && ts.isObjectLiteralExpression(draft)) {
+        const name = draft.properties.find(property => ts.isPropertyAssignment(property) && property.name.getText(ast) === 'name')
+        if (name) names.push(name.initializer)
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.equal(names.length, 1)
+  assert.ok(ts.isCallExpression(names[0]))
+  assert.equal(names[0].expression.getText(ast), 'uiText')
+  const branch = names[0].arguments[0]
+  assert.ok(ts.isConditionalExpression(branch))
+  assert.equal(branch.condition.getText(ast), 'creating')
+  assert.ok(ts.isStringLiteralLike(branch.whenTrue) && ts.isStringLiteralLike(branch.whenFalse))
+  assert.equal(branch.whenTrue.text, '新建章节')
+  assert.equal(branch.whenFalse.text, key)
+  assert.equal(vietnamese[branch.whenTrue.text], 'Tạo chương')
+  assert.equal(english[branch.whenTrue.text], 'Create chapter')
+  assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key))
+  assert.deepEqual(tokens(vietnamese[key]), tokens(key))
+  assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]))
+  assert.notEqual(vietnamese[key], english[key], key)
+  assert.equal(vietnamese[key], 'Chỉnh sửa chương')
+})

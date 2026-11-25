@@ -254,7 +254,7 @@ async function exerciseBusyGuard(c, labels, busyLabels, endedLabels) {
 
 const saveFailureCopy = {
   zh: ['章节编辑', '章节编辑未保存成功，请处理页面中的提示后重试。'],
-  vi: ['Edit chapter', 'Không thể lưu Edit chapter. Hãy xử lý lỗi trên trang rồi thử lại.'],
+  vi: ['Chỉnh sửa chương', 'Không thể lưu Chỉnh sửa chương. Hãy xử lý lỗi trên trang rồi thử lại.'],
   en: ['Edit chapter', 'Could not save Edit chapter. Resolve the error on the page and retry.'],
 }
 const syntheticSaveError = 'Synthetic chapter save rejected'

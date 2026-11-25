@@ -2924,7 +2924,7 @@
   "章节正文已变化，本次仍采用下方已确认摘录。": "Chapter text changed. This operation uses the confirmed excerpt below.",
   "章节组合已停用，可在工作台管理中继续准备场次。": "Chapter assembly is retired. Continue preparing scenes in the workbench.",
   "章节组合已停用，旧链接缺少章节标识。": "Chapter assembly is unavailable. This link has no chapter ID.",
-  "章节编辑": "Edit chapter",
+  "章节编辑": "Chỉnh sửa chương",
   "章节读取失败，暂无法展示场次": "Could not load chapters to display scenes",
   "章节顺序读取失败，请重试": "Không tải được thứ tự chương. Vui lòng thử lại.",
   "端口值种类不匹配，不提供隐式转换": "Port value types differ. Implicit conversion is unavailable.",
