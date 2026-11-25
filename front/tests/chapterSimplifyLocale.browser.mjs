@@ -20,14 +20,14 @@ const server = await createServer({
   root, cacheDir: join(output, 'vite-cache'),
   server: { host: '127.0.0.1', port, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } },
 })
-let browser, page, task, reuseNext = false
+let browser, page, task, reuseNext = false, resultMode = 'valid'
 const errors = [], forbidden = [], unexpectedWrites = [], requests = [], cancellations = []
 const cleanup = browserCleanup(() => ({ browser, server }))
 const active = () => task && ['queued', 'running'].includes(task.status)
 const labels = {
-  zh: { account: '用户与语言设置', button: '智能精简', busy: '精简中', cancel: '取消精简', source: '章节原文', started: '已开始智能精简', running: '完成后可在「精简结果」中查看。', success: '智能精简已完成，可查看结果并手动采用。', result: '精简结果', current: '当前原文', condensed: '精简内容', discard: '放弃精简结果' },
-  vi: { account: 'Tài khoản và ngôn ngữ', button: 'Tinh giản kịch bản bằng AI', busy: 'Condensing', cancel: 'Cancel condensation', source: 'Chapter source', started: 'Đã bắt đầu tinh giản kịch bản', running: 'Khi tác vụ hoàn tất, có thể xem trong mục kết quả tinh giản.', success: 'Đã tinh giản kịch bản. Bạn có thể xem kết quả và chủ động áp dụng.', result: 'Condensation result', current: 'Current source', condensed: 'Condensed text', discard: 'Discard condensed text' },
-  en: { account: 'User and language settings', button: 'Condense with AI', busy: 'Condensing', cancel: 'Cancel condensation', source: 'Chapter source', started: 'Condensation started', running: 'Open the condensed text when the task finishes.', success: 'Condensed text is ready to review and apply.', result: 'Condensation result', current: 'Current source', condensed: 'Condensed text', discard: 'Discard condensed text' },
+  zh: { account: '用户与语言设置', button: '智能精简', busy: '精简中', cancel: '取消精简', source: '章节原文', started: '已开始智能精简', running: '完成后可在「精简结果」中查看。', success: '智能精简已完成，可查看结果并手动采用。', ready: '智能精简完成', result: '精简结果', current: '当前原文', condensed: '精简内容', discard: '放弃精简结果' },
+  vi: { account: 'Tài khoản và ngôn ngữ', button: 'Tinh giản kịch bản bằng AI', busy: 'Condensing', cancel: 'Cancel condensation', source: 'Chapter source', started: 'Đã bắt đầu tinh giản kịch bản', running: 'Khi tác vụ hoàn tất, có thể xem trong mục kết quả tinh giản.', success: 'Đã tinh giản kịch bản. Bạn có thể xem kết quả và chủ động áp dụng.', ready: 'Đã hoàn tất tinh giản kịch bản', result: 'Condensation result', current: 'Current source', condensed: 'Condensed text', discard: 'Discard condensed text' },
+  en: { account: 'User and language settings', button: 'Condense with AI', busy: 'Condensing', cancel: 'Cancel condensation', source: 'Chapter source', started: 'Condensation started', running: 'Open the condensed text when the task finishes.', success: 'Condensed text is ready to review and apply.', ready: 'Condensed text ready', result: 'Condensation result', current: 'Current source', condensed: 'Condensed text', discard: 'Discard condensed text' },
 }
 const editor = () => page.getByRole('dialog').filter({ has: page.locator('.chapter-editor-name-row') })
 const visible = text => page.getByText(text, { exact: true }).first().waitFor({ state: 'visible' })
@@ -58,6 +58,7 @@ async function finish(locale) {
   task.status = 'succeeded'
   task.progress = 100
   await visible(locale.success)
+  await visible(locale.ready)
   await verifySource(locale)
   await editor().getByRole('button', { name: locale.result, exact: true }).click()
   const result = page.getByRole('dialog', { name: locale.result, exact: true })
@@ -102,7 +103,8 @@ try {
     }
     if (task && path.endsWith('/film/tasks/' + task.task_id + '/status')) return respond(task)
     if (task && path.endsWith('/film/tasks/' + task.task_id + '/result')) {
-      return respond({ ...task, result: { simplified_script_text: condensed } })
+      if (resultMode === 'read-error') return route.fulfill({ status: 500, json: { detail: 'Synthetic result read error' } })
+      return respond({ ...task, result: { simplified_script_text: resultMode === 'empty' ? '   ' : condensed } })
     }
     if (path.endsWith('/film/tasks') && url.searchParams.get('target_type') === 'script_simplification'
       && url.searchParams.get('target_id') === 'ch1') {
@@ -141,6 +143,23 @@ try {
   task.status = 'failed'
   await visible('Tinh giản kịch bản thất bại. Vui lòng thử lại sau.')
   await verifySource(labels.vi)
+  for (const [mode, notice] of [
+    ['empty', 'Tinh giản kịch bản thất bại: không có nội dung hợp lệ'],
+    ['read-error', 'Không thể đọc kết quả tinh giản kịch bản'],
+  ]) {
+    await start(labels.vi)
+    resultMode = mode
+    task.status = 'succeeded'
+    task.progress = 100
+    await visible(notice)
+    await verifySource(labels.vi)
+    const trigger = editor().getByRole('button', { name: labels.vi.button, exact: true })
+    await trigger.waitFor()
+    assert.equal(await trigger.isEnabled(), true)
+    assert.equal(await editor().getByRole('button', { name: labels.vi.result, exact: true }).count(), 0)
+    await screenshot('simplify-' + mode + '-vi-390.png')
+    resultMode = 'valid'
+  }
   await chooseLanguage(labels.vi, 'English', 'en-US')
   await start(labels.en)
   await finish(labels.en)
@@ -148,7 +167,7 @@ try {
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.locator('html[lang="zh-CN"]').waitFor()
   await verifySource(labels.zh)
-  assert.equal(requests.length, 5)
+  assert.equal(requests.length, 7)
   for (const request of requests) {
     assert.equal(request.script_text, raw)
     assert.equal(request.chapter_id, chapter.id)
@@ -157,7 +176,7 @@ try {
   assert.deepEqual(unexpectedWrites, [])
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
-  console.log('Simplification task copy: zh/vi/en, active reload, start/reuse/cancel/success/failure, result review without source replacement, desktop/mobile, mock-only PASS.')
+  console.log('Simplification task copy: zh/vi/en, active reload, start/reuse/cancel/success/failure, result review without source replacement, empty/read-error guards, desktop/mobile, mock-only PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output)
