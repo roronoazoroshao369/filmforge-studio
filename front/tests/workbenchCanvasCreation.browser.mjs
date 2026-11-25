@@ -61,6 +61,76 @@ try {
   const page = await context.newPage()
   page.setDefaultTimeout(13000)
   const location = 'http://127.0.0.1:4386/projects/' + project + '/chapters/' + chapter + '/workbench-management?sequence=' + scene.id + '&step=storyboard'
+  // Read-only locale exercise: fixture GETs are isolated; no browser writes are permitted.
+  const guardLabels = [
+    ['zh-CN', '生成新分镜画布', '画布名称', '忠实提取', '取消', '有未提交的配置', '继续填写', '放弃配置', '切换前，请处理尚未提交的配置。', '保存后继续'],
+    ['vi-VN', 'Generate storyboard canvas', 'Tên bảng vẽ', 'Faithful extraction', 'Hủy', 'Có cấu hình chưa gửi', 'Tiếp tục nhập thông tin', 'Bỏ cấu hình', 'Hãy xử lý cấu hình chưa gửi trước khi chuyển đổi.', 'Lưu và tiếp tục'],
+    ['en-US', 'Generate storyboard canvas', 'Canvas name', 'Faithful extraction', 'Cancel', 'Unsubmitted configuration', 'Continue entering details', 'Discard configuration', 'Resolve unsubmitted settings before switching.', 'Save and continue'],
+  ]
+  for (const [lang, startLabel, nameLabel, modeLabel, cancelLabel, heading, keepLabel, discardLabel, warning, saveLabel] of guardLabels) {
+    const guardContext = await browser.newContext({ viewport: lang === 'vi-VN' ? { width: 390, height: 844 } : { width: 1366, height: 900 } })
+    const forbidden = [], errors = []
+    try {
+      await guardContext.addInitScript(locale => {
+        window.__ENV = { BACKEND_URL: window.location.origin }
+        localStorage.setItem('jellyfish_language', locale)
+      }, lang)
+      await guardContext.route('**/*', async route => {
+        const request = route.request(), url = new URL(request.url())
+        if (url.origin !== new URL(location).origin || !['GET', 'HEAD'].includes(request.method())) {
+          forbidden.push(request.method() + ' ' + url.pathname)
+          await route.abort()
+        } else if (url.pathname.startsWith('/api/')) {
+          const response = await route.fetch()
+          await route.fulfill({ response })
+        } else await route.continue()
+      })
+      const guardPage = await guardContext.newPage()
+      guardPage.on('pageerror', error => errors.push(error.message))
+      await guardPage.goto(location)
+      await guardPage.locator('html[lang="' + lang + '"]').waitFor()
+      const open = guardPage.getByRole('button', { name: startLabel, exact: true })
+      const config = guardPage.getByRole('dialog', { name: startLabel, exact: true })
+      const input = config.getByRole('textbox', { name: nameLabel, exact: true })
+      const mode = config.getByRole('radio', { name: modeLabel, exact: true })
+      const close = config.getByRole('button', { name: cancelLabel, exact: true })
+      const guard = guardPage.getByRole('dialog', { name: heading, exact: true })
+      const draftName = 'Synthetic draft · ' + lang
+      await open.click()
+      await input.fill(draftName)
+      await mode.check()
+      const showGuard = async () => {
+        await close.click()
+        await guard.getByText(warning, { exact: true }).waitFor()
+        await guard.getByRole('button', { name: keepLabel, exact: true }).waitFor()
+        await guard.getByRole('button', { name: discardLabel, exact: true }).waitFor()
+        assert.equal(await guard.getByRole('button', { name: saveLabel, exact: true }).count(), 0)
+        assert.equal(await input.inputValue(), draftName)
+        assert.equal(await mode.isChecked(), true)
+        assert.equal(await guard.evaluate(node => node.scrollWidth <= node.clientWidth + 1), true)
+        assert.equal(await guardPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true)
+      }
+      await showGuard()
+      await guardPage.screenshot({ path: join(output, 'configuration-guard-' + lang + '.png'), animations: 'disabled' })
+      await guard.getByRole('button', { name: keepLabel, exact: true }).click()
+      await guard.waitFor({ state: 'hidden' })
+      assert.equal(await input.inputValue(), draftName)
+      assert.equal(await mode.isChecked(), true)
+      await showGuard()
+      await guard.getByRole('button', { name: discardLabel, exact: true }).click()
+      await config.waitFor({ state: 'hidden' })
+      await open.click()
+      assert.notEqual(await input.inputValue(), draftName)
+      assert.equal(await mode.isChecked(), false)
+      await close.click()
+      await config.waitFor({ state: 'hidden' })
+      assert.equal(guardPage.url(), location)
+      assert.deepEqual(forbidden, [])
+      assert.deepEqual(errors, [])
+    } finally {
+      await guardContext.close()
+    }
+  }
   const probe=await context.newPage()
   let analysisCalls=0
   await probe.route('**/analyze',async route=>{analysisCalls++;await route.fulfill({status:503,json:{detail:'隔离确认测试'}})})

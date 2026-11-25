@@ -343,6 +343,9 @@ try {
   await pagination.getByText('1 / 7', { exact: true }).waitFor()
 
   await page.setViewportSize({ width: 1440, height: 620 })
+  // The desktop pagination control can render before the debounced grid measurement.
+  await card('对照画布 5').waitFor()
+  assert.deepEqual(await ordering(), ['对照画布 7', '对照画布 6', '对照画布 5'])
   await pagination.getByText('3', { exact: true }).click()
   await card('对照画布 1').getByRole('button', { name: '对照画布 1更多操作', exact: true }).click()
   await page.getByRole('menuitem', { name: '删除画布', exact: true }).click()
