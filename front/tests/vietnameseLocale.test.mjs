@@ -650,3 +650,41 @@ test('Vietnamese covers Chapter source-save impact and review controls', () => {
   assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
   for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
 })
+
+test('Vietnamese covers Chapter outer source editor labels and shared source readers', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const expected = new Map([
+    ['章节原文', 'Nguyên văn chương'],
+    ['编辑章节原文…', 'Chỉnh sửa nguyên văn chương…'],
+    ['章节内容', 'Nội dung chương'],
+    ['正文编辑', 'Chỉnh sửa nội dung'],
+    ['正文视图', 'Chế độ xem nội dung'],
+  ])
+  const files = [
+    ['pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx', [1, 1, 1, 1, 1]],
+    ['pages/aiStudio/directing/ChapterSourceSelection.tsx', [1, 0, 0, 0, 0]],
+    ['pages/aiStudio/directing/ShootingExplanationDrawer.tsx', [2, 0, 0, 0, 0]],
+  ]
+  for (const [file, counts] of files) {
+    const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+    const usage = new Map([...expected.keys()].map(key => [key, 0]))
+    function visit(node) {
+      if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+        && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0]) && usage.has(node.arguments[0].text)) {
+        const key = node.arguments[0].text
+        usage.set(key, usage.get(key) + 1)
+      }
+      ts.forEachChild(node, visit)
+    }
+    visit(ast)
+    assert.deepEqual([...usage.values()], counts, file)
+  }
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+  for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
+})

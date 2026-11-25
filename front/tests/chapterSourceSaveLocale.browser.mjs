@@ -19,9 +19,9 @@ const server = await createServer({ root, cacheDir: join(output, 'vite-cache'), 
 let browser, page
 const cleanup = browserCleanup(() => ({ browser, server }))
 const copy = {
-  zh: { lang: 'zh-CN', account: '用户与语言设置', source: '章节原文', name: '章节名称', save: '保存', note: '修改原文不会同步已有场次', warning: '修改章节原文不会自动更新已有场次的划分和原文范围。本章已有 2 个场次，保存后需要重新核对。已有设计和素材保留，继续试拍前还需核对相关设计与计划依据。', cancel: '继续编辑', confirm: '确认保存原文', saved: '原文已保存，请逐场核对原文范围及设计与计划依据。', review: '查看本章场次并核对' },
-  vi: { lang: 'vi-VN', account: 'Tài khoản và ngôn ngữ', source: 'Chapter source', name: 'Tên chương', save: 'Lưu', note: 'Chỉnh sửa nguyên văn không đồng bộ các phân cảnh hiện có', warning: 'Chỉnh sửa nguyên văn của chương không tự động cập nhật cách phân chia và phạm vi nguyên văn của các phân cảnh hiện có. Chương này có 2 phân cảnh; cần rà soát lại sau khi lưu. Các thiết kế và tư liệu hiện có được giữ nguyên; trước khi quay thử tiếp, cần kiểm tra căn cứ thiết kế và kế hoạch liên quan.', cancel: 'Tiếp tục chỉnh sửa', confirm: 'Xác nhận lưu nguyên văn', saved: 'Đã lưu nguyên văn. Hãy rà soát phạm vi nguyên văn và căn cứ thiết kế, kế hoạch của từng phân cảnh.', review: 'Xem và rà soát các phân cảnh của chương' },
-  en: { lang: 'en-US', account: 'User and language settings', source: 'Chapter source', name: 'Chapter name', save: 'Save', note: 'Editing the source does not update existing scenes', warning: 'Changing the source does not update the 2 existing scenes. Review their ranges after saving. Designs and assets are retained. Check related designs and plans before the next shoot.', cancel: 'Continue editing', confirm: 'Confirm source save', saved: 'Source saved. Check each scene’s range and the basis for its design and plan.', review: 'View and review chapter scenes' },
+  zh: { create: '新建章节', content: '章节内容', edit: '正文编辑', view: '正文视图', placeholder: '编辑章节原文…', lang: 'zh-CN', account: '用户与语言设置', source: '章节原文', name: '章节名称', save: '保存', note: '修改原文不会同步已有场次', warning: '修改章节原文不会自动更新已有场次的划分和原文范围。本章已有 2 个场次，保存后需要重新核对。已有设计和素材保留，继续试拍前还需核对相关设计与计划依据。', cancel: '继续编辑', confirm: '确认保存原文', saved: '原文已保存，请逐场核对原文范围及设计与计划依据。', review: '查看本章场次并核对' },
+  vi: { create: 'Tạo chương', content: 'Nội dung chương', edit: 'Chỉnh sửa nội dung', view: 'Chế độ xem nội dung', placeholder: 'Chỉnh sửa nguyên văn chương…', lang: 'vi-VN', account: 'Tài khoản và ngôn ngữ', source: 'Nguyên văn chương', name: 'Tên chương', save: 'Lưu', note: 'Chỉnh sửa nguyên văn không đồng bộ các phân cảnh hiện có', warning: 'Chỉnh sửa nguyên văn của chương không tự động cập nhật cách phân chia và phạm vi nguyên văn của các phân cảnh hiện có. Chương này có 2 phân cảnh; cần rà soát lại sau khi lưu. Các thiết kế và tư liệu hiện có được giữ nguyên; trước khi quay thử tiếp, cần kiểm tra căn cứ thiết kế và kế hoạch liên quan.', cancel: 'Tiếp tục chỉnh sửa', confirm: 'Xác nhận lưu nguyên văn', saved: 'Đã lưu nguyên văn. Hãy rà soát phạm vi nguyên văn và căn cứ thiết kế, kế hoạch của từng phân cảnh.', review: 'Xem và rà soát các phân cảnh của chương' },
+  en: { create: 'Create chapter', content: 'Chapter content', edit: 'Edit text', view: 'Text view', placeholder: 'Edit chapter source…', lang: 'en-US', account: 'User and language settings', source: 'Chapter source', name: 'Chapter name', save: 'Save', note: 'Editing the source does not update existing scenes', warning: 'Changing the source does not update the 2 existing scenes. Review their ranges after saving. Designs and assets are retained. Check related designs and plans before the next shoot.', cancel: 'Continue editing', confirm: 'Confirm source save', saved: 'Source saved. Check each scene’s range and the basis for its design and plan.', review: 'View and review chapter scenes' },
 }
 async function switchLanguage(from, label, to) {
   await page.goto(base, { waitUntil: 'domcontentloaded' })
@@ -30,10 +30,25 @@ async function switchLanguage(from, label, to) {
   await page.locator(`html[lang="${to.lang}"]`).waitFor()
 }
 async function exercise(c, draft, commit) {
+  await page.goto(base, { waitUntil: 'domcontentloaded' })
+  const beforeCreate = writes.length
+  await page.getByRole('button', { name: c.create }).click()
+  const create = page.getByRole('dialog', { name: c.create, exact: true })
+  await create.getByRole('group', { name: c.view, exact: true }).waitFor()
+  const newSource = create.getByRole('textbox', { name: c.source, exact: true })
+  assert.equal(await newSource.inputValue(), '')
+  assert.equal(await newSource.getAttribute('placeholder'), c.placeholder)
+  assert.equal(writes.length, beforeCreate)
   await page.goto(base + '&edit=ch1', { waitUntil: 'domcontentloaded' })
   const editor = page.locator('.chapter-editor-drawer')
   const source = editor.getByRole('textbox', { name: c.source, exact: true })
   await source.waitFor()
+  const content = editor.locator('.chapter-editor-pane-switch')
+  assert.equal(await content.getAttribute('aria-label'), c.content)
+  if (page.viewportSize().width === 390) assert.equal(await content.isVisible(), true)
+  assert.equal(await source.getAttribute('placeholder'), c.placeholder)
+  await editor.locator('[aria-label="' + c.edit + '"]').waitFor()
+  assert.equal(await editor.getByRole('group', { name: c.view, exact: true }).count(), 0)
   assert.equal(await source.inputValue(), chapter.raw_text)
   assert.equal(await editor.getByRole('textbox', { name: c.name, exact: true }).inputValue(), title)
   await editor.getByText(c.note, { exact: true }).waitFor()
