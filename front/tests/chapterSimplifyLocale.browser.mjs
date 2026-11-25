@@ -26,7 +26,7 @@ const cleanup = browserCleanup(() => ({ browser, server }))
 const active = () => task && ['queued', 'running'].includes(task.status)
 const labels = {
   zh: { account: '用户与语言设置', button: '智能精简', busy: '精简中', cancel: '取消精简', source: '章节原文', started: '已开始智能精简', running: '完成后可在「精简结果」中查看。', success: '智能精简已完成，可查看结果并手动采用。', ready: '智能精简完成', result: '精简结果', current: '当前原文', condensed: '精简内容', discard: '放弃精简结果' },
-  vi: { account: 'Tài khoản và ngôn ngữ', button: 'Tinh giản kịch bản bằng AI', busy: 'Condensing', cancel: 'Cancel condensation', source: 'Chapter source', started: 'Đã bắt đầu tinh giản kịch bản', running: 'Khi tác vụ hoàn tất, có thể xem trong mục kết quả tinh giản.', success: 'Đã tinh giản kịch bản. Bạn có thể xem kết quả và chủ động áp dụng.', ready: 'Đã hoàn tất tinh giản kịch bản', result: 'Condensation result', current: 'Current source', condensed: 'Condensed text', discard: 'Discard condensed text' },
+  vi: { account: 'Tài khoản và ngôn ngữ', button: 'Tinh giản kịch bản bằng AI', busy: 'Condensing', cancel: 'Cancel condensation', source: 'Chapter source', started: 'Đã bắt đầu tinh giản kịch bản', running: 'Khi tác vụ hoàn tất, có thể xem trong mục kết quả tinh giản.', success: 'Đã tinh giản kịch bản. Bạn có thể xem kết quả và chủ động áp dụng.', ready: 'Đã hoàn tất tinh giản kịch bản', result: 'Condensation result', current: 'Current source', condensed: 'Condensed text', discard: 'Bỏ kết quả tinh giản' },
   en: { account: 'User and language settings', button: 'Condense with AI', busy: 'Condensing', cancel: 'Cancel condensation', source: 'Chapter source', started: 'Condensation started', running: 'Open the condensed text when the task finishes.', success: 'Condensed text is ready to review and apply.', ready: 'Condensed text ready', result: 'Condensation result', current: 'Current source', condensed: 'Condensed text', discard: 'Discard condensed text' },
 }
 const editor = () => page.getByRole('dialog').filter({ has: page.locator('.chapter-editor-name-row') })
@@ -54,7 +54,7 @@ async function start(locale, message = locale.started) {
   assert.equal(await busy.count(), 1)
   assert.equal(await busy.isDisabled(), true)
 }
-async function finish(locale) {
+async function finish(locale, { resumed = false } = {}) {
   task.status = 'succeeded'
   task.progress = 100
   await visible(locale.success)
@@ -64,6 +64,15 @@ async function finish(locale) {
   const result = page.getByRole('dialog', { name: locale.result, exact: true })
   assert.equal(await result.getByRole('textbox', { name: locale.current, exact: true }).inputValue(), raw)
   assert.equal(await result.getByRole('textbox', { name: locale.condensed, exact: true }).inputValue(), condensed)
+  if (resumed) {
+    await result.getByText('Không thể xác minh nguyên văn mà tác vụ đã sử dụng. Hãy đối chiếu với nguyên văn hiện tại trước khi áp dụng.', { exact: true }).waitFor()
+    await result.getByRole('button', { name: 'Thay nguyên văn bằng bản tinh giản', exact: true }).click()
+    await visible('Thay nguyên văn hiện tại bằng bản tinh giản?')
+    await page.getByRole('button', { name: 'Hủy', exact: true }).last().click()
+    assert.equal(await result.getByRole('textbox', { name: locale.current, exact: true }).inputValue(), raw)
+    assert.equal(await result.evaluate(element => element.scrollWidth <= element.clientWidth + 1), true)
+    await screenshot('simplify-resumed-vi-390.png')
+  }
   await result.getByRole('button', { name: locale.discard, exact: true }).click()
   await result.waitFor({ state: 'hidden' })
   await verifySource(locale)
@@ -138,7 +147,7 @@ try {
   await visible('Đã hủy tác vụ tinh giản kịch bản.')
   reuseNext = true
   await start(labels.vi, 'Đã khôi phục tác vụ tinh giản kịch bản của chương hiện tại')
-  await finish(labels.vi)
+  await finish(labels.vi, { resumed: true })
   await start(labels.vi)
   task.status = 'failed'
   await visible('Tinh giản kịch bản thất bại. Vui lòng thử lại sau.')
@@ -160,6 +169,34 @@ try {
     await screenshot('simplify-' + mode + '-vi-390.png')
     resultMode = 'valid'
   }
+  await page.setViewportSize({ width: 1366, height: 768 })
+  await start(labels.vi)
+  const changed = raw + ' 新段落。'
+  const source = editor().getByRole('textbox', { name: labels.vi.source, exact: true })
+  await source.fill(changed)
+  task.status = 'succeeded'
+  task.progress = 100
+  await visible(labels.vi.success)
+  await visible(labels.vi.ready)
+  await editor().getByRole('button', { name: labels.vi.result, exact: true }).click()
+  const stale = page.getByRole('dialog', { name: labels.vi.result, exact: true })
+  await stale.getByText('Nguyên văn đã thay đổi sau khi tinh giản. Bạn có thể tinh giản lại.', { exact: true }).waitFor()
+  assert.equal(await stale.getByRole('textbox', { name: labels.vi.current, exact: true }).inputValue(), changed)
+  assert.equal(await stale.getByRole('textbox', { name: labels.vi.condensed, exact: true }).inputValue(), condensed)
+  await stale.getByRole('button', { name: 'Thay nguyên văn bằng bản tinh giản', exact: true }).click()
+  await visible('Thay nguyên văn hiện tại bằng bản tinh giản?')
+  assert.equal(await stale.getByRole('textbox', { name: labels.vi.current, exact: true }).inputValue(), changed)
+  await page.getByRole('button', { name: 'Hủy', exact: true }).last().click()
+  assert.equal(await stale.getByRole('textbox', { name: labels.vi.current, exact: true }).inputValue(), changed)
+  assert.equal(await stale.evaluate(element => element.scrollWidth <= element.clientWidth + 1), true)
+  await screenshot('simplify-stale-vi-1366.png')
+  await stale.getByRole('button', { name: 'Thay nguyên văn bằng bản tinh giản', exact: true }).click()
+  await page.getByRole('button', { name: 'Xác nhận thay thế', exact: true }).click()
+  await stale.waitFor({ state: 'hidden' })
+  assert.equal(await source.inputValue(), condensed)
+  assert.equal(await editor().locator('.chapter-editor-name-row input').inputValue(), chapter.title)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await verifySource(labels.vi)
   await chooseLanguage(labels.vi, 'English', 'en-US')
   await start(labels.en)
   await finish(labels.en)
@@ -167,7 +204,7 @@ try {
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.locator('html[lang="zh-CN"]').waitFor()
   await verifySource(labels.zh)
-  assert.equal(requests.length, 7)
+  assert.equal(requests.length, 8)
   for (const request of requests) {
     assert.equal(request.script_text, raw)
     assert.equal(request.chapter_id, chapter.id)
@@ -176,7 +213,7 @@ try {
   assert.deepEqual(unexpectedWrites, [])
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
-  console.log('Simplification task copy: zh/vi/en, active reload, start/reuse/cancel/success/failure, result review without source replacement, empty/read-error guards, desktop/mobile, mock-only PASS.')
+  console.log('Simplification task copy: zh/vi/en, active reload, start/reuse/cancel/success/failure, result discard, resumed and stale-source explicit replacement safeguards, empty/read-error guards, desktop/mobile, mock-only PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output)
