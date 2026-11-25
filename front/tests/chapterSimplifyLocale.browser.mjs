@@ -26,7 +26,7 @@ const cleanup = browserCleanup(() => ({ browser, server }))
 const active = () => task && ['queued', 'running'].includes(task.status)
 const labels = {
   zh: { account: '用户与语言设置', button: '智能精简', busy: '精简中', cancel: '取消精简', source: '章节原文', started: '已开始智能精简', running: '完成后可在「精简结果」中查看。', success: '智能精简已完成，可查看结果并手动采用。', ready: '智能精简完成', result: '精简结果', current: '当前原文', condensed: '精简内容', discard: '放弃精简结果' },
-  vi: { account: 'Tài khoản và ngôn ngữ', button: 'Tinh giản kịch bản bằng AI', busy: 'Condensing', cancel: 'Cancel condensation', source: 'Chapter source', started: 'Đã bắt đầu tinh giản kịch bản', running: 'Khi tác vụ hoàn tất, có thể xem trong mục kết quả tinh giản.', success: 'Đã tinh giản kịch bản. Bạn có thể xem kết quả và chủ động áp dụng.', ready: 'Đã hoàn tất tinh giản kịch bản', result: 'Condensation result', current: 'Current source', condensed: 'Condensed text', discard: 'Bỏ kết quả tinh giản' },
+  vi: { account: 'Tài khoản và ngôn ngữ', button: 'Tinh giản kịch bản bằng AI', busy: 'Đang tinh giản', cancel: 'Hủy tinh giản', source: 'Chapter source', started: 'Đã bắt đầu tinh giản kịch bản', running: 'Khi tác vụ hoàn tất, có thể xem trong mục kết quả tinh giản.', success: 'Đã tinh giản kịch bản. Bạn có thể xem kết quả và chủ động áp dụng.', ready: 'Đã hoàn tất tinh giản kịch bản', result: 'Kết quả tinh giản', current: 'Nguyên văn hiện tại', condensed: 'Nội dung tinh giản', discard: 'Bỏ kết quả tinh giản' },
   en: { account: 'User and language settings', button: 'Condense with AI', busy: 'Condensing', cancel: 'Cancel condensation', source: 'Chapter source', started: 'Condensation started', running: 'Open the condensed text when the task finishes.', success: 'Condensed text is ready to review and apply.', ready: 'Condensed text ready', result: 'Condensation result', current: 'Current source', condensed: 'Condensed text', discard: 'Discard condensed text' },
 }
 const editor = () => page.getByRole('dialog').filter({ has: page.locator('.chapter-editor-name-row') })
@@ -54,7 +54,7 @@ async function start(locale, message = locale.started) {
   assert.equal(await busy.count(), 1)
   assert.equal(await busy.isDisabled(), true)
 }
-async function finish(locale, { resumed = false } = {}) {
+async function finish(locale, { resumed = false, retry = false } = {}) {
   task.status = 'succeeded'
   task.progress = 100
   await visible(locale.success)
@@ -72,6 +72,30 @@ async function finish(locale, { resumed = false } = {}) {
     assert.equal(await result.getByRole('textbox', { name: locale.current, exact: true }).inputValue(), raw)
     assert.equal(await result.evaluate(element => element.scrollWidth <= element.clientWidth + 1), true)
     await screenshot('simplify-resumed-vi-390.png')
+  }
+  if (retry) {
+    const beforeRetry = requests.length
+    const draft = result.getByRole('textbox', { name: locale.condensed, exact: true })
+    const retryButton = result.getByRole('button', { name: 'Tinh giản lại', exact: true })
+    await retryButton.click()
+    await visible('Tinh giản lại sẽ thay thế nội dung tinh giản bên phải')
+    await page.getByRole('button', { name: 'Hủy', exact: true }).last().click()
+    assert.equal(requests.length, beforeRetry)
+    assert.equal(await draft.inputValue(), condensed)
+    assert.equal(await result.getByRole('textbox', { name: locale.current, exact: true }).inputValue(), raw)
+    await retryButton.click()
+    await visible('Tinh giản lại sẽ thay thế nội dung tinh giản bên phải')
+    await page.getByRole('button', { name: 'Tinh giản lại', exact: true }).last().click()
+    await result.getByRole('button', { name: locale.cancel, exact: true }).waitFor()
+    assert.equal(requests.length, beforeRetry + 1)
+    assert.equal(await result.getByRole('button', { name: locale.discard, exact: true }).isDisabled(), true)
+    await screenshot('simplify-retry-vi-390.png')
+    task.status = 'succeeded'
+    task.progress = 100
+    await retryButton.waitFor()
+    await visible(locale.ready)
+    assert.equal(await draft.inputValue(), condensed)
+    assert.equal(await result.getByRole('textbox', { name: locale.current, exact: true }).inputValue(), raw)
   }
   await result.getByRole('button', { name: locale.discard, exact: true }).click()
   await result.waitFor({ state: 'hidden' })
@@ -147,7 +171,16 @@ try {
   await visible('Đã hủy tác vụ tinh giản kịch bản.')
   reuseNext = true
   await start(labels.vi, 'Đã khôi phục tác vụ tinh giản kịch bản của chương hiện tại')
-  await finish(labels.vi, { resumed: true })
+  await finish(labels.vi, { resumed: true, retry: true })
+  // Dismiss completed task notifications through their actual UI controls.
+  const completedNotices = page.locator('.ant-notification-notice').filter({
+    hasText: 'Tinh giản kịch bản bằng AI đã hoàn thành',
+  })
+  while (await completedNotices.count()) {
+    const notice = completedNotices.last()
+    await notice.locator('.ant-notification-notice-close').click()
+    await notice.waitFor({ state: 'hidden' })
+  }
   await start(labels.vi)
   task.status = 'failed'
   await visible('Tinh giản kịch bản thất bại. Vui lòng thử lại sau.')
@@ -204,7 +237,7 @@ try {
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.locator('html[lang="zh-CN"]').waitFor()
   await verifySource(labels.zh)
-  assert.equal(requests.length, 8)
+  assert.equal(requests.length, 9)
   for (const request of requests) {
     assert.equal(request.script_text, raw)
     assert.equal(request.chapter_id, chapter.id)
@@ -213,7 +246,7 @@ try {
   assert.deepEqual(unexpectedWrites, [])
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
-  console.log('Simplification task copy: zh/vi/en, active reload, start/reuse/cancel/success/failure, result discard, resumed and stale-source explicit replacement safeguards, empty/read-error guards, desktop/mobile, mock-only PASS.')
+  console.log('Simplification task copy: zh/vi/en, active reload, start/reuse/cancel/success/failure, result discard, confirmed retry, resumed and stale-source explicit replacement safeguards, empty/read-error guards, desktop/mobile, mock-only PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output)

@@ -414,3 +414,38 @@ test('Vietnamese covers Chapter condensation discard and source replacement safe
   assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
   for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
 })
+
+test('Vietnamese covers Chapter condensation result, retry and task controls', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const expected = new Map([
+    ['精简中', [1, 'Đang tinh giản']],
+    ['取消精简', [2, 'Hủy tinh giản']],
+    ['精简结果', [2, 'Kết quả tinh giản']],
+    ['精简内容', [6, 'Nội dung tinh giản']],
+    ['当前原文', [2, 'Nguyên văn hiện tại']],
+    ['重新精简', [2, 'Tinh giản lại']],
+    ['重新精简将替换右侧精简内容', [1, 'Tinh giản lại sẽ thay thế nội dung tinh giản bên phải']],
+  ])
+  const usage = new Map([...expected.keys()].map(key => [key, 0]))
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0])
+      && usage.has(node.arguments[0].text)) {
+      const key = node.arguments[0].text
+      usage.set(key, usage.get(key) + 1)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual(usage, new Map([...expected].map(([key, [count]]) => [key, count])))
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+  for (const [key, [, value]] of expected) assert.equal(vietnamese[key], value, key)
+})
