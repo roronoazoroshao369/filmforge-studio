@@ -449,3 +449,40 @@ test('Vietnamese covers Chapter condensation result, retry and task controls', (
   assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
   for (const [key, [, value]] of expected) assert.equal(vietnamese[key], value, key)
 })
+
+test('Vietnamese covers Chapter consistency result headers and task controls', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const expected = new Map([
+    ['上次检查', 'Lần kiểm tra gần nhất'],
+    ['检查中', 'Đang kiểm tra'],
+    ['原文一致性检查', 'Kiểm tra tính nhất quán của nguyên văn'],
+    ['取消检查', 'Hủy kiểm tra'],
+    ['原文一致性检查结果', 'Kết quả kiểm tra tính nhất quán của nguyên văn'],
+    ['角色混淆检查结果（旧版）', 'Kết quả kiểm tra nhầm lẫn nhân vật (phiên bản cũ)'],
+    ['发现问题', 'Phát hiện vấn đề'],
+    ['无问题', 'Không có vấn đề'],
+    ['问题：', 'Số vấn đề: '],
+  ])
+  const usage = new Map([...expected.keys()].map(key => [key, 0]))
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0])
+      && usage.has(node.arguments[0].text)) {
+      const key = node.arguments[0].text
+      usage.set(key, usage.get(key) + 1)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual(usage, new Map([...expected.keys()].map(key => [key, 1])))
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+  for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
+})
