@@ -21,7 +21,7 @@ const hash = value => createHash('sha256').update(value).digest('hex')
 const checkResult = {
   policy_version: 2, review_version: hash('[]'), explanation_version: hash('[]'),
   source_version: hash(raw), check_scope: 'source_consistency', has_issues: true,
-  issues: [{ issue_type: 'fact', classification: 'contradiction', excerpt: raw, description: '需要核对', suggestion: '修复标点' }],
+  issues: [{ issue_type: 'fact', classification: 'contradiction', excerpt: raw, description: '需要核对', suggestion: '修复标点', candidates: ['Synthetic candidate A', 'Synthetic candidate B'] }],
 }
 const repairResult = { optimized_script_text: optimized, source_text: raw, policy_version: 2, review_version: hash('[]'), explanation_version: hash('[]') }
 let issueMode = 'contradiction', resultMode = 'valid'
@@ -62,6 +62,43 @@ async function prepareChoice(locale, choice = locale.repair) {
     await page.getByText(option, { exact: true }).waitFor({ state: 'visible' })
   }
   await page.getByText(choice, { exact: true }).click()
+  await verifySource(locale)
+}
+const resolutionLabels = {
+  zh: { candidate: '问题1候选解释', choose: '选择解释或填写处理意见', resolution: '问题1处理意见', placeholder: '处理意见或原意解释；有多种解释时请明确意图', confirm: '确认并添加解释' },
+  vi: { candidate: 'Giải thích ứng viên cho vấn đề 1', choose: 'Chọn giải thích hoặc nhập ý kiến xử lý', resolution: 'Ý kiến xử lý vấn đề 1', placeholder: 'Nhập ý kiến xử lý hoặc giải thích ý nghĩa gốc; nếu có nhiều cách hiểu, hãy làm rõ ý định.', confirm: 'Xác nhận và thêm giải thích' },
+  en: { candidate: 'Issue 1 candidate explanations', choose: 'Choose an explanation or enter a resolution', resolution: 'Issue 1 resolution', placeholder: 'Explain the intended meaning or how to resolve the issue. Clarify the intent if there are multiple interpretations.', confirm: 'Confirm and add explanation' },
+}
+async function verifyResolution(lang) {
+  const locale = labels[lang]
+  const copy = resolutionLabels[lang]
+  await prepareChoice(locale, locale.explain)
+  const candidate = editor().getByRole('combobox', { name: copy.candidate, exact: true })
+  const resolution = editor().getByRole('textbox', { name: copy.resolution, exact: true })
+  const confirm = editor().getByRole('button', { name: copy.confirm, exact: true })
+  await editor().getByText(copy.choose, { exact: true }).waitFor()
+  assert.equal(await resolution.getAttribute('placeholder'), copy.placeholder)
+  assert.equal(await resolution.inputValue(), '')
+  assert.equal(await confirm.isDisabled(), true)
+  await candidate.click()
+  const options = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-content')
+  await options.filter({ hasText: /^Synthetic candidate A$/ }).waitFor({ state: 'visible' })
+  await options.filter({ hasText: /^Synthetic candidate B$/ }).click()
+  assert.equal(await resolution.inputValue(), 'Synthetic candidate B')
+  assert.equal(await confirm.isEnabled(), true)
+  await verifySource(locale)
+  await screenshot('resolution-' + lang + '-' + page.viewportSize().width + '.png')
+  if (lang === 'vi') {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await screenshot('resolution-vi-390.png')
+    await page.setViewportSize({ width: 1366, height: 768 })
+  }
+  await resolution.fill('')
+  assert.equal(await confirm.isDisabled(), true)
+  // Do not confirm the explanation: no creator draft or source change is authorized.
+  const decision = editor().locator('.ant-select-selector').filter({ has: page.getByRole('combobox', { name: locale.issue, exact: true }) })
+  await decision.click()
+  await options.filter({ hasText: locale.repair }).click()
   await verifySource(locale)
 }
 async function prepare(locale) {
@@ -164,7 +201,7 @@ try {
   await visible('请先选择已确认的原文异常')
   assert.equal(requests.length, 0)
   await verifySource(labels.zh)
-  await prepareChoice(labels.zh, labels.zh.repair)
+  await verifyResolution('zh')
   await start(labels.zh)
   await finish(labels.zh)
   await chooseLanguage(labels.zh, 'Tiếng Việt', 'vi-VN')
@@ -172,7 +209,7 @@ try {
   await editor().getByRole('button', { name: labels.vi.button, exact: true }).click()
   await visible('Hãy chọn một bất thường trong nguyên văn đã xác nhận trước')
   assert.equal(requests.length, 1)
-  await prepareChoice(labels.vi, labels.vi.repair)
+  await verifyResolution('vi')
   await start(labels.vi)
   await screenshot('optimize-vi-1366.png')
   await page.setViewportSize({ width: 390, height: 844 })
@@ -235,7 +272,7 @@ try {
   await editor().getByRole('button', { name: labels.en.button, exact: true }).click()
   await visible('Select a confirmed source issue first')
   assert.equal(requests.length, 7)
-  await prepareChoice(labels.en, labels.en.repair)
+  await verifyResolution('en')
   await start(labels.en)
   await finish(labels.en, true)
   await chooseLanguage(labels.en, '简体中文', 'zh-CN')
