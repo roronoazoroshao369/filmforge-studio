@@ -809,3 +809,31 @@ test('Vietnamese covers shared workspace ended-navigation guard', () => {
   assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
   for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
 })
+
+test('Vietnamese covers shared workspace save-returned-false guard', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const expected = new Map([
+    ['{{name}}未保存成功，请处理页面中的提示后重试。', 'Không thể lưu {{name}}. Hãy xử lý lỗi trên trang rồi thử lại.'],
+  ])
+  const file = 'pages/aiStudio/directing/WorkspaceDrafts.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const usage = new Map([...expected.keys()].map(key => [key, 0]))
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0]) && usage.has(node.arguments[0].text)) {
+      const key = node.arguments[0].text
+      usage.set(key, usage.get(key) + 1)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual([...usage.values()], [1])
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+  for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
+})

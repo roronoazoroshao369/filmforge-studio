@@ -17,6 +17,7 @@ const beforeOther = structuredClone(other), beforeScenes = structuredClone(scene
 const writes = [], forbidden = [], errors = [], guardReads = new Set()
 let observingGuard = false
 let pendingWrite
+let failNextWrite = false
 const server = await createServer({ root, cacheDir: join(output, 'vite-cache'), server: { host: '127.0.0.1', port, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } } })
 let browser, page
 const cleanup = browserCleanup(() => ({ browser, server }))
@@ -251,6 +252,66 @@ async function exerciseBusyGuard(c, labels, busyLabels, endedLabels) {
   assert.equal(writes.length, before + 1)
 }
 
+const saveFailureCopy = {
+  zh: ['章节编辑', '章节编辑未保存成功，请处理页面中的提示后重试。'],
+  vi: ['Edit chapter', 'Không thể lưu Edit chapter. Hãy xử lý lỗi trên trang rồi thử lại.'],
+  en: ['Edit chapter', 'Could not save Edit chapter. Resolve the error on the page and retry.'],
+}
+const syntheticSaveError = 'Synthetic chapter save rejected'
+async function exerciseSaveFailure(c, labels, failureLabels) {
+  const [back, heading, , , save, warning] = labels
+  const [draftName, failure] = failureLabels
+  const before = writes.length, originalChapter = structuredClone(chapter)
+  const draftTitle = originalChapter.title + ' retry ' + c.lang
+  const draftSource = originalChapter.raw_text + ' retry ' + c.lang
+  const payload = { expected_basis_version: originalChapter.basis_version, title: draftTitle, raw_text: draftSource }
+  await page.goto(base + '&edit=ch1', { waitUntil: 'domcontentloaded' })
+  const editor = page.locator('.chapter-editor-drawer')
+  const source = editor.getByRole('textbox', { name: c.source, exact: true })
+  const name = editor.getByRole('textbox', { name: c.name, exact: true })
+  await source.waitFor()
+  await source.fill(draftSource)
+  await name.fill(draftTitle)
+  const guard = page.getByRole('dialog', { name: heading, exact: true })
+  observingGuard = true
+  try {
+    await editor.getByRole('button', { name: back, exact: true }).click()
+    await guard.getByText(warning, { exact: true }).waitFor()
+    await guard.getByText(c.warning, { exact: true }).waitFor()
+    await guard.getByRole('listitem').getByText(draftName, { exact: true }).waitFor()
+    assert.equal(writes.length, before)
+    failNextWrite = true
+    const retry = guard.getByRole('button', { name: save, exact: true })
+    await retry.click()
+    await guard.getByText(failure, { exact: true }).waitFor()
+    await editor.getByText(syntheticSaveError, { exact: true }).waitFor()
+    assert.equal(await guard.isVisible(), true)
+    assert.equal(await editor.isVisible(), true)
+    assert.equal(await retry.isEnabled(), true)
+    assert.equal(await name.inputValue(), draftTitle)
+    assert.equal(await source.inputValue(), draftSource)
+    assert.deepEqual(chapter, originalChapter)
+    assert.deepEqual(writes.slice(before), [payload])
+    assert.equal(await guard.evaluate(e => e.scrollWidth <= e.clientWidth + 1), true)
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true)
+    await page.screenshot({ path: join(output, c.lang + '-save-failure-guard.png'), animations: 'disabled' })
+    await retry.click()
+    await guard.waitFor({ state: 'hidden' })
+    await editor.waitFor({ state: 'hidden' })
+    assert.deepEqual(writes.slice(before), [payload, payload])
+    assert.equal(chapter.title, draftTitle)
+    assert.equal(chapter.raw_text, draftSource)
+    assert.notEqual(chapter.basis_version, originalChapter.basis_version)
+    assert.equal(chapter.condensed_text, originalChapter.condensed_text)
+    assert.deepEqual(chapter.source_explanations, originalChapter.source_explanations)
+    assert.deepEqual(other, beforeOther)
+    assert.deepEqual(scenes, beforeScenes)
+  } finally {
+    failNextWrite = false
+    observingGuard = false
+  }
+}
+
 try {
   await server.listen()
   browser = await chromium.launch({ headless: true, channel: process.env.PLAYWRIGHT_CHANNEL })
@@ -268,6 +329,7 @@ try {
       const body = req.postDataJSON(); writes.push(body)
       assert.equal(body.expected_basis_version, chapter.basis_version)
       if (pendingWrite) await pendingWrite
+      if (failNextWrite) { failNextWrite = false; return route.fulfill({ status: 409, json: { detail: syntheticSaveError } }) }
       chapter.raw_text = body.raw_text; if (body.title !== undefined) chapter.title = body.title; chapter.basis_version = `v${writes.length + 1}`
       return respond(chapter)
     }
@@ -311,12 +373,20 @@ try {
   await page.setViewportSize({ width: 390, height: 844 })
   await exerciseBusyGuard(copy.vi, guardCopy.vi, busyCopy.vi, endedCopy.vi)
   assert.equal(writes.length, 12)
+  await exerciseSaveFailure(copy.vi, guardCopy.vi, saveFailureCopy.vi)
+  await page.setViewportSize({ width: 1366, height: 768 })
+  await switchLanguage(copy.vi, 'English', copy.en)
+  await exerciseSaveFailure(copy.en, guardCopy.en, saveFailureCopy.en)
+  await switchLanguage(copy.en, '简体中文', copy.zh)
+  await exerciseSaveFailure(copy.zh, guardCopy.zh, saveFailureCopy.zh)
+  assert.equal(writes.length, 18)
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
   console.log('Mock read-only paths during guard exercise:', [...guardReads].sort())
   console.log('Source-save impact and dirty-draft leave: zh/vi/en cancel/discard/save/review, six exact PATCH bodies, preserved unrelated data, mobile/desktop PASS.')
   console.log('Busy-navigation guard: zh/vi/en, three additional exact PATCH bodies, stay twice while response held, disabled save/discard, no duplicate writes PASS.')
   console.log('Ended-navigation guard: zh/vi/en, three additional exact PATCH bodies, keep guard open through save, explicit continue, no duplicate writes PASS.')
+  console.log('Save-returned-false guard: zh/vi/en, failed and successful exact PATCH per locale, retained draft, explicit retry PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output, await page?.locator('body').innerText())
