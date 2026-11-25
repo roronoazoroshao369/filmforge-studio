@@ -1,7 +1,7 @@
 # 42 — Add portrait export profile with safe areas
 
 Status: needs-triage
-Progress: not-started
+Progress: in-progress
 Type: task
 Phase: C1
 Priority: P1
@@ -38,3 +38,5 @@ Bổ sung preset 9:16 (và tùy chọn 16:9) vào pipeline export sẵn có; gi�
 
 ## Comments
 - 2026-11-23 — New Creator-First backlog after owner chose personally owned channel monetization, not SaaS or customer production. **Planning only**; no work completed.
+
+- 2026-11-25 — S18 independent test-only re-triage: #41 done, original premise of existing active export false. Retain needs-triage for product scope; progress in-progress for completed offline proof only, original acceptance unchecked, dependency 41 unchanged. [Evidence and exact commands](../../../docs/filmforge/evidence/s18-picture-master-fixture.md). RED exit 1 missing helper, initial GREEN 11/11, final 97 scoped pytest pass in 14.33s exit 0 (12 new), root 20/20. Two real synthetic H.264 masters 180x320 and 320x180, 25fps/50 frames/2s/no audio, manifest and immutable source checks; no app/API changes, current workbench integration/audio/caption safe areas/creative signoff remain missing. #46 unchanged, no owner gate/spend/production/preview changes. Find delivery with git log -1 -- this ticket.
