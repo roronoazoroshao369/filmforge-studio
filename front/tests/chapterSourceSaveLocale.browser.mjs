@@ -164,7 +164,12 @@ const busyCopy = {
   vi: ['Thao tác hiện tại chưa hoàn tất', 'Ở lại trang hiện tại', 'Vui lòng chờ thao tác hiện tại hoàn tất trước khi chuyển trang.'],
   en: ['Current operation incomplete', 'Stay on this page', 'Wait for the current operation before switching.'],
 }
-async function exerciseBusyGuard(c, labels, busyLabels) {
+const endedCopy = {
+  zh: ['当前操作已结束', '当前没有未保存的修改，可以继续切换。', '继 续'],
+  vi: ['Thao tác hiện tại đã kết thúc', 'Hiện không có thay đổi chưa lưu. Bạn có thể tiếp tục chuyển trang.', 'Tiếp tục'],
+  en: ['Current operation ended', 'All changes are saved. You can switch.', 'Continue'],
+}
+async function exerciseBusyGuard(c, labels, busyLabels, endedLabels) {
   const [back, , , discard, save] = labels
   const [heading, stay, warning] = busyLabels
   const before = writes.length, originalChapter = structuredClone(chapter)
@@ -206,8 +211,10 @@ async function exerciseBusyGuard(c, labels, busyLabels) {
     assert.equal(await source.inputValue(), draftSource)
     assert.equal(await name.inputValue(), draftTitle)
     await showGuard()
-    await guard.getByRole('button', { name: stay, exact: true }).click()
-    await guard.waitFor({ state: 'hidden' })
+    if (!endedLabels) {
+      await guard.getByRole('button', { name: stay, exact: true }).click()
+      await guard.waitFor({ state: 'hidden' })
+    }
   } finally {
     release.resolve()
     pendingWrite = undefined
@@ -223,7 +230,23 @@ async function exerciseBusyGuard(c, labels, busyLabels) {
   assert.deepEqual(chapter.source_explanations, originalChapter.source_explanations)
   assert.deepEqual(other, beforeOther)
   assert.deepEqual(scenes, beforeScenes)
-  await editor.getByRole('button', { name: back, exact: true }).click()
+  if (endedLabels) {
+    const [endedHeading, endedWarning, continueLabel] = endedLabels
+    const ended = page.getByRole('dialog', { name: endedHeading, exact: true })
+    await ended.getByText(endedWarning, { exact: true }).waitFor()
+    assert.equal(await editor.isVisible(), true)
+    assert.equal(await ended.getByRole('button', { name: discard, exact: true }).count(), 0)
+    assert.equal(await ended.getByRole('button', { name: save, exact: true }).count(), 0)
+    const proceed = ended.getByRole('button', { name: continueLabel, exact: true })
+    assert.equal(await proceed.isEnabled(), true)
+    assert.equal(await ended.evaluate(e => e.scrollWidth <= e.clientWidth + 1), true)
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true)
+    await page.screenshot({ path: join(output, c.lang + '-ended-guard.png'), animations: 'disabled' })
+    await proceed.click()
+    await ended.waitFor({ state: 'hidden' })
+  } else {
+    await editor.getByRole('button', { name: back, exact: true }).click()
+  }
   await editor.waitFor({ state: 'hidden' })
   assert.equal(writes.length, before + 1)
 }
@@ -281,11 +304,19 @@ try {
   await switchLanguage(copy.vi, 'English', copy.en)
   await exerciseBusyGuard(copy.en, guardCopy.en, busyCopy.en)
   assert.equal(writes.length, 9)
+  await exerciseBusyGuard(copy.en, guardCopy.en, busyCopy.en, endedCopy.en)
+  await switchLanguage(copy.en, '简体中文', copy.zh)
+  await exerciseBusyGuard(copy.zh, guardCopy.zh, busyCopy.zh, endedCopy.zh)
+  await switchLanguage(copy.zh, 'Tiếng Việt', copy.vi)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await exerciseBusyGuard(copy.vi, guardCopy.vi, busyCopy.vi, endedCopy.vi)
+  assert.equal(writes.length, 12)
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
   console.log('Mock read-only paths during guard exercise:', [...guardReads].sort())
   console.log('Source-save impact and dirty-draft leave: zh/vi/en cancel/discard/save/review, six exact PATCH bodies, preserved unrelated data, mobile/desktop PASS.')
   console.log('Busy-navigation guard: zh/vi/en, three additional exact PATCH bodies, stay twice while response held, disabled save/discard, no duplicate writes PASS.')
+  console.log('Ended-navigation guard: zh/vi/en, three additional exact PATCH bodies, keep guard open through save, explicit continue, no duplicate writes PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output, await page?.locator('body').innerText())
