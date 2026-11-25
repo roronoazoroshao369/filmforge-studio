@@ -617,3 +617,36 @@ test('Vietnamese covers Chapter supplementary explanation issue warnings and saf
   assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
   for (const [key, [, value]] of expected) assert.equal(vietnamese[key], value, key)
 })
+
+test('Vietnamese covers Chapter source-save impact and review controls', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const expected = new Map([
+    ['修改原文不会同步已有场次', 'Chỉnh sửa nguyên văn không đồng bộ các phân cảnh hiện có'],
+    ['修改章节原文不会自动更新已有场次的划分和原文范围。本章已有 {{count}} 个场次，保存后需要重新核对。已有设计和素材保留，继续试拍前还需核对相关设计与计划依据。', 'Chỉnh sửa nguyên văn của chương không tự động cập nhật cách phân chia và phạm vi nguyên văn của các phân cảnh hiện có. Chương này có {{count}} phân cảnh; cần rà soát lại sau khi lưu. Các thiết kế và tư liệu hiện có được giữ nguyên; trước khi quay thử tiếp, cần kiểm tra căn cứ thiết kế và kế hoạch liên quan.'],
+    ['确认保存原文', 'Xác nhận lưu nguyên văn'],
+    ['原文已保存，请逐场核对原文范围及设计与计划依据。', 'Đã lưu nguyên văn. Hãy rà soát phạm vi nguyên văn và căn cứ thiết kế, kế hoạch của từng phân cảnh.'],
+    ['查看本章场次并核对', 'Xem và rà soát các phân cảnh của chương'],
+  ])
+  const usage = new Map([...expected.keys()].map(key => [key, 0]))
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0]) && usage.has(node.arguments[0].text)) {
+      const key = node.arguments[0].text
+      usage.set(key, usage.get(key) + 1)
+      if (key.includes('{{count}}')) assert.equal(node.arguments[1].getText(ast), '{ count: sequenceCount }')
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual(usage, new Map([...expected.keys()].map(key => [key, 1])))
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+  for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
+})
