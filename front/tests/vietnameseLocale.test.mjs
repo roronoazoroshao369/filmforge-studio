@@ -292,6 +292,37 @@ test('Vietnamese covers Chapter source repair guard and error messages', () => {
   assert.deepEqual(expected.filter(key => vietnamese[key] === english[key]), [])
 })
 
+test('Vietnamese covers Chapter consistency result and cancellation messages', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const expected = new Map([
+    ['读取一致性检查结果失败', 2],
+    ['发现 {{value1}} 个原文一致性问题', 1],
+    ['未发现原文一致性问题', 2],
+    ['取消一致性检查任务失败', 1],
+  ])
+  const usage = new Map([...expected.keys()].map(key => [key, 0]))
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0])
+      && usage.has(node.arguments[0].text)) {
+      const key = node.arguments[0].text
+      usage.set(key, usage.get(key) + 1)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual(usage, expected)
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+})
+
 test('Vietnamese covers source repair decision and preview controls', () => {
   const english = catalog('en-US', 'ui')
   const vietnamese = catalog('vi-VN', 'ui')

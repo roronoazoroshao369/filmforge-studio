@@ -19,14 +19,14 @@ const server = await createServer({
   root, cacheDir: join(output, 'vite-cache'),
   server: { host: '127.0.0.1', port, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } },
 })
-let browser, page, task, reuseNext = false, queueNext = false
+let browser, page, task, reuseNext = false, queueNext = false, issueNext = false, readErrorNext = false
 const errors = [], forbidden = [], unexpectedWrites = [], checks = [], cancellations = []
 const cleanup = browserCleanup(() => ({ browser, server }))
 const active = () => task && ['queued', 'running'].includes(task.status)
 const labels = {
-  zh: { account: '用户与语言设置', button: '原文一致性检查', source: '章节原文', started: '已开始一致性检查', running: '检查完成后会自动展示最新的一致性检查结果。', success: '一致性检查已完成，结果已自动更新。' },
-  vi: { account: 'Tài khoản và ngôn ngữ', button: 'Source consistency check', source: 'Chapter source', started: 'Đã bắt đầu kiểm tra tính nhất quán', running: 'Kết quả kiểm tra tính nhất quán sẽ tự động hiển thị khi kiểm tra hoàn tất.', success: 'Đã kiểm tra tính nhất quán; kết quả được cập nhật.' },
-  en: { account: 'User and language settings', button: 'Source consistency check', source: 'Chapter source', started: 'Consistency check started', running: 'Results will appear when the check finishes.', success: 'Consistency check complete. Results updated.' },
+  zh: { account: '用户与语言设置', button: '原文一致性检查', source: '章节原文', started: '已开始一致性检查', running: '检查完成后会自动展示最新的一致性检查结果。', success: '一致性检查已完成，结果已自动更新。', empty: '未发现原文一致性问题' },
+  vi: { account: 'Tài khoản và ngôn ngữ', button: 'Source consistency check', source: 'Chapter source', started: 'Đã bắt đầu kiểm tra tính nhất quán', running: 'Kết quả kiểm tra tính nhất quán sẽ tự động hiển thị khi kiểm tra hoàn tất.', success: 'Đã kiểm tra tính nhất quán; kết quả được cập nhật.', empty: 'Không phát hiện vấn đề về tính nhất quán của nguyên văn' },
+  en: { account: 'User and language settings', button: 'Source consistency check', source: 'Chapter source', started: 'Consistency check started', running: 'Results will appear when the check finishes.', success: 'Consistency check complete. Results updated.', empty: 'No source consistency issues found' },
 }
 async function chooseLanguage(from, label, lang) {
   await page.goto(base, { waitUntil: 'domcontentloaded' })
@@ -57,10 +57,17 @@ async function start(locale, message = locale.started) {
   await visible(message)
   await visible(locale.running)
 }
-async function finish(locale) {
+async function finish(locale, hasIssues = false) {
+  issueNext = hasIssues
   task.status = 'succeeded'
   task.progress = 100
   await visible(locale.success)
+  if (hasIssues) {
+    await visible('Phát hiện 1 vấn đề về tính nhất quán của nguyên văn')
+    await editor().getByText('Synthetic issue', { exact: true }).waitFor()
+  } else {
+    await editor().getByText(locale.empty, { exact: true }).waitFor()
+  }
   await verifySource(locale)
 }
 async function screenshot(name) {
@@ -101,7 +108,9 @@ try {
     }
     if (task && path.endsWith('/film/tasks/' + task.task_id + '/status')) return respond(task)
     if (task && path.endsWith('/film/tasks/' + task.task_id + '/result')) {
-      return respond({ ...task, result: { has_issues: false, issues: [], summary: '无混淆' } })
+      if (readErrorNext) return route.fulfill({ status: 500, json: { detail: 'Synthetic result read error' } })
+      const issues = issueNext ? [{ issue_type: 'fact', classification: 'contradiction', excerpt: raw, description: 'Synthetic issue' }] : []
+      return respond({ ...task, result: { check_scope: 'source_consistency', has_issues: issueNext, issues, summary: '无混淆' } })
     }
     if (path.endsWith('/film/tasks') && url.searchParams.get('target_type') === 'consistency_check'
       && url.searchParams.get('target_id') === 'ch1') {
@@ -150,12 +159,22 @@ try {
   await verifySource(labels.vi)
   await editor().getByRole('button', { name: labels.vi.button, exact: true }).waitFor()
   assert.equal(await editor().getByRole('button', { name: labels.vi.button, exact: true }).isEnabled(), true)
+  await start(labels.vi)
+  await finish(labels.vi, true)
+  await screenshot('consistency-issues-vi-390.png')
+  await start(labels.vi)
+  readErrorNext = true
+  task.status = 'succeeded'
+  task.progress = 100
+  await visible('Không thể đọc kết quả kiểm tra tính nhất quán')
+  await verifySource(labels.vi)
+  readErrorNext = false
   await chooseLanguage(labels.vi, 'English', 'en-US')
   await start(labels.en)
   await finish(labels.en)
   await chooseLanguage(labels.en, '简体中文', 'zh-CN')
   await verifySource(labels.zh)
-  assert.equal(checks.length, 6)
+  assert.equal(checks.length, 8)
   for (const check of checks) {
     assert.equal(check.script_text, raw)
     assert.equal(check.chapter_id, chapter.id)
@@ -165,7 +184,7 @@ try {
   assert.deepEqual(unexpectedWrites, [])
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
-  console.log('Consistency task copy: zh/vi/en, active reload, start/reuse/deferred and immediate cancel/success/failure, duplicate submission controls, creator source, desktop/mobile, mock-only PASS.')
+  console.log('Consistency task copy: zh/vi/en, active reload, start/reuse/deferred and immediate cancel/success/failure, duplicate submission controls, empty/issue results and read error, creator source, desktop/mobile, mock-only PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output)
