@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
@@ -14,6 +15,20 @@ const raw = '雨停了。她推门。'
 const chapter = {
   id: 'ch1', project_id: 'p1', index: 1, title: '青云传 · Bản thảo',
   raw_text: raw, condensed_text: '', sequence_count: 0, status: 'draft', source_explanations: [],
+}
+const hash = value => createHash('sha256').update(value).digest('hex')
+const note = { excerpt: '', id: 'synthetic-note', kind: 'explanation', policy_version: 2, source_version: hash(raw), text: 'Synthetic creator explanation' }
+const noteVersion = hash(JSON.stringify([note]))
+const explanationIssues = [
+  { target: 'explanation', explanation_id: note.id, description: 'Synthetic boundary issue', suggestion: 'Synthetic suggestion A' },
+  { target: 'explanation', explanation_id: 'missing-note', description: 'Synthetic missing issue', suggestion: 'Synthetic suggestion B' },
+  { target: 'source', issue_type: 'fact', classification: 'contradiction', excerpt: raw, description: 'Synthetic source issue', suggestion: 'Synthetic suggestion C' },
+]
+let explanationPhase = false
+const explanationCopy = {
+  zh: { issue: '补充解释问题', missing: '条目已移除', prefix: '建议：', stop: '确认越界，退出采用', notice: '已退出采用，解释内容保留待调整', guidance: '若判断不成立，可保留解释；AI 疑点不会自动作废解释。需要修改时请在上方解释条目中编辑。', confirmed: '已确认', pending: '待复核' },
+  vi: { issue: 'Vấn đề về giải thích bổ sung', missing: 'Mục giải thích đã bị xóa', prefix: 'Đề xuất: ', stop: 'Xác nhận vượt phạm vi, ngừng sử dụng', notice: 'Đã ngừng sử dụng; nội dung giải thích được giữ lại để chỉnh sửa.', guidance: 'Nếu nhận định không đúng, bạn có thể giữ lại giải thích. Nghi vấn của AI không tự động làm mất hiệu lực giải thích. Nếu cần sửa, hãy chỉnh sửa mục giải thích phía trên.', confirmed: 'Đã xác nhận', pending: 'Chờ kiểm tra lại' },
+  en: { issue: 'Explanation issues', missing: 'Entry removed', prefix: 'Suggestion', stop: 'Confirm out of range and stop using', notice: 'No longer in use. The explanation is retained for editing.', guidance: 'If the assessment is incorrect, you can keep the explanation. AI concerns do not automatically invalidate it. Edit the explanation above if needed.', confirmed: 'Confirmed', pending: 'Needs review' },
 }
 const server = await createServer({
   root, cacheDir: join(output, 'vite-cache'),
@@ -131,6 +146,10 @@ try {
     if (task && path.endsWith('/film/tasks/' + task.task_id + '/status')) return respond(task)
     if (task && path.endsWith('/film/tasks/' + task.task_id + '/result')) {
       if (readErrorNext) return route.fulfill({ status: 500, json: { detail: 'Synthetic result read error' } })
+      if (explanationPhase) return respond({ ...task, result: {
+        check_scope: 'source_consistency', has_issues: true, issues: explanationIssues,
+        source_version: hash(raw), policy_version: 2, review_version: noteVersion, explanation_version: noteVersion,
+      } })
       const issues = allTypesNext
         ? issueTypes.map(([issue_type, classification], i) => ({ issue_type, classification, excerpt: raw, description: 'Synthetic classification ' + (i + 1) }))
         : issueNext ? [{ issue_type: 'fact', classification: 'contradiction', excerpt: raw, description: 'Synthetic issue' }] : []
@@ -142,7 +161,7 @@ try {
       return respond({ items: active() && statuses.includes(task.status) ? [task] : [], total: active() ? 1 : 0 })
     }
     const data = path.endsWith('/projects/p1') ? { id: 'p1', name: 'Synthetic chapter', stats: {} }
-      : path.endsWith('/studio/chapters/ch1') ? chapter
+      : path.endsWith('/studio/chapters/ch1') ? (explanationPhase ? { ...chapter, source_explanations: [note] } : chapter)
       : path.endsWith('/chapters') ? { items: [chapter], pagination: { page: 1, page_size: 10, total: 1, max_page: 1 } }
       : { items: [], total: 0 }
     return respond(data)
@@ -228,11 +247,67 @@ try {
     assert.equal(check.chapter_id, chapter.id)
     assert.deepEqual(check.source_explanations, [])
   }
+  // Separate populated fixture; preserve the earlier nine empty-explanation payload assertions.
+  explanationPhase = true
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  for (const lang of ['zh', 'vi', 'en']) {
+    if (lang === 'vi') await chooseLanguage(labels.zh, 'Tiếng Việt', 'vi-VN')
+    if (lang === 'en') await chooseLanguage(labels.vi, 'English', 'en-US')
+    const locale = labels[lang], copy = explanationCopy[lang]
+    const panel = page.locator('.chapter-editor-explanations')
+    const noteRow = panel.getByRole('button', { name: /Synthetic creator explanation/ })
+    await noteRow.getByText(copy.confirmed, { exact: true }).waitFor()
+    await start(locale)
+    task.status = 'succeeded'
+    task.progress = 100
+    await visible(locale.success)
+    const card = editor().locator('.ant-card').filter({ has: page.getByText(locale.result, { exact: true }) })
+    const rows = card.locator('.ant-list-item')
+    await card.locator('.ant-tag').getByText(locale.count + '3', { exact: true }).waitFor()
+    assert.equal(await rows.count(), 3)
+    for (const [index, issue] of explanationIssues.entries()) {
+      const row = rows.nth(index)
+      await row.getByText(issue.description, { exact: true }).waitFor()
+      await row.getByText(copy.prefix + issue.suggestion, { exact: true }).waitFor()
+      if (index < 2) {
+        await row.getByText(copy.issue, { exact: true }).waitFor()
+        await row.getByText(copy.guidance, { exact: true }).waitFor()
+        await row.getByText(index === 0 ? note.text : copy.missing, { exact: true }).waitFor()
+        await row.getByRole('button', { name: copy.stop, exact: true }).waitFor()
+      }
+    }
+    const stop = rows.nth(0).getByRole('button', { name: copy.stop, exact: true })
+    assert.equal(await stop.isEnabled(), true)
+    // A model concern alone must not invalidate the existing creator explanation.
+    await noteRow.getByText(copy.confirmed, { exact: true }).waitFor()
+    await verifySource(locale)
+    await stop.scrollIntoViewIfNeeded()
+    await screenshot('explanation-issue-' + lang + '-1366.png')
+    if (lang === 'vi') {
+      await page.setViewportSize({ width: 390, height: 844 })
+      await stop.scrollIntoViewIfNeeded()
+      await screenshot('explanation-issue-vi-390.png')
+      await page.setViewportSize({ width: 1366, height: 768 })
+    }
+    await stop.click()
+    await visible(copy.notice)
+    await noteRow.getByText(copy.pending, { exact: true }).waitFor()
+    await rows.nth(0).getByText(note.text, { exact: true }).waitFor()
+    assert.equal(await stop.isDisabled(), true)
+    await verifySource(locale)
+    assert.equal(await panel.locator('.chapter-explanation-row').count(), 1)
+  }
+  assert.equal(checks.length, 12)
+  for (const check of checks.slice(9)) {
+    assert.equal(check.script_text, raw)
+    assert.equal(check.chapter_id, chapter.id)
+    assert.deepEqual(check.source_explanations, [note])
+  }
   assert.deepEqual(cancellations, ['check2', 'check5'])
   assert.deepEqual(unexpectedWrites, [])
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
-  console.log('Consistency task copy: zh/vi/en, active reload, start/reuse/deferred and immediate cancel/success/failure, duplicate submission controls, current/legacy headers, last-check timestamp, all finite classification branches and fallback results, empty/issue results and read error, creator source, desktop/mobile, mock-only PASS.')
+  console.log('Consistency task copy: zh/vi/en, active reload, start/reuse/deferred and immediate cancel/success/failure, duplicate submission controls, current/legacy headers, last-check timestamp, all finite classification branches and fallback results, explanation issue warnings/explicit stop/retained text, empty/issue results and read error, creator source, desktop/mobile, mock-only PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output)

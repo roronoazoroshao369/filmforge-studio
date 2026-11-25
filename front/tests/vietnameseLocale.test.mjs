@@ -584,3 +584,36 @@ test('Vietnamese covers Chapter candidate explanation and resolution controls', 
   assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
   for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
 })
+
+test('Vietnamese covers Chapter supplementary explanation issue warnings and safeguards', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/chapter/components/ChapterRawTextEditorDrawer.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const expected = new Map([
+    ['补充解释问题', [1, 'Vấn đề về giải thích bổ sung']],
+    ['条目已移除', [1, 'Mục giải thích đã bị xóa']],
+    ['建议：', [2, 'Đề xuất: ']],
+    ['已退出采用，解释内容保留待调整', [1, 'Đã ngừng sử dụng; nội dung giải thích được giữ lại để chỉnh sửa.']],
+    ['确认越界，退出采用', [1, 'Xác nhận vượt phạm vi, ngừng sử dụng']],
+    ['若判断不成立，可保留解释；AI 疑点不会自动作废解释。需要修改时请在上方解释条目中编辑。', [1, 'Nếu nhận định không đúng, bạn có thể giữ lại giải thích. Nghi vấn của AI không tự động làm mất hiệu lực giải thích. Nếu cần sửa, hãy chỉnh sửa mục giải thích phía trên.']],
+  ])
+  const usage = new Map([...expected.keys()].map(key => [key, 0]))
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0]) && usage.has(node.arguments[0].text)) {
+      const key = node.arguments[0].text
+      usage.set(key, usage.get(key) + 1)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual(usage, new Map([...expected].map(([key, [count]]) => [key, count])))
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+  for (const [key, [, value]] of expected) assert.equal(vietnamese[key], value, key)
+})
