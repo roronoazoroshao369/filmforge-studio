@@ -9,6 +9,12 @@
 name: Backend Pylint
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-pylint.yml"
   pull_request:
     paths:
       - "backend/**"

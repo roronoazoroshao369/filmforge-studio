@@ -1,6 +1,13 @@
 name: Frontend checks
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "front/**"
+      - "backend/**"
+      - ".github/workflows/frontend-checks.yml"
   pull_request:
     paths:
       - "front/**"
