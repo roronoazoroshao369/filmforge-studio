@@ -14,7 +14,8 @@ const chapter = { id: 'ch1', project_id: 'p1', index: 1, title, raw_text: origin
 const other = { ...chapter, id: 'ch2', index: 2, title: '另一章', sequence_count: 0 }
 const scenes = [1, 2].map(i => ({ id: `s${i}`, position: i - 1, title: `场次 ${i}`, version: 1, source_excerpt: original, source_text: original, source_changed: true }))
 const beforeOther = structuredClone(other), beforeScenes = structuredClone(scenes)
-const writes = [], forbidden = [], errors = []
+const writes = [], forbidden = [], errors = [], guardReads = new Set()
+let observingGuard = false
 const server = await createServer({ root, cacheDir: join(output, 'vite-cache'), server: { host: '127.0.0.1', port, strictPort: true, open: false, hmr: false, watch: { ignored: ['**/*'] } } })
 let browser, page
 const cleanup = browserCleanup(() => ({ browser, server }))
@@ -89,6 +90,73 @@ async function exercise(c, draft, commit) {
   assert.deepEqual(other, beforeOther)
   assert.deepEqual(scenes, beforeScenes)
 }
+const guardCopy = {
+  zh: ['返回', '有未保存的修改', '取消，继续编辑', '放弃修改并继续', '保存后继续', '继续前，请处理以下修改。保存不会确认版本、开始生成或改变当前采用。'],
+  vi: ['Quay lại', 'Có thay đổi chưa lưu', 'Hủy, tiếp tục chỉnh sửa', 'Bỏ thay đổi và tiếp tục', 'Lưu và tiếp tục', 'Hãy xử lý các thay đổi sau trước khi tiếp tục. Việc lưu không xác nhận phiên bản, bắt đầu tạo nội dung hay thay đổi kết quả đang được sử dụng.'],
+  en: ['Back', 'Unsaved changes', 'Cancel and continue editing', 'Discard changes and continue', 'Save and continue', 'Resolve these changes before continuing. Saving does not confirm versions, start generation or change adopted results.'],
+}
+async function exerciseGuard(c, labels) {
+  const [back, heading, cancel, discard, save, warning] = labels
+  observingGuard = true
+  const before = writes.length, originalChapter = structuredClone(chapter)
+  const editor = page.locator('.chapter-editor-drawer')
+  const source = editor.getByRole('textbox', { name: c.source, exact: true })
+  const name = editor.getByRole('textbox', { name: c.name, exact: true })
+  const guard = page.getByRole('dialog', { name: heading, exact: true })
+  const open = async () => {
+    await page.goto(base + '&edit=ch1', { waitUntil: 'domcontentloaded' })
+    await source.waitFor()
+  }
+  const dirty = async (suffix) => {
+    await source.fill(originalChapter.raw_text + suffix)
+    await name.fill(originalChapter.title + suffix)
+  }
+  const showGuard = async (suffix) => {
+    await editor.getByRole('button', { name: back, exact: true }).click()
+    await guard.getByText(warning, { exact: true }).waitFor()
+    await guard.getByText(c.warning, { exact: true }).waitFor()
+    for (const label of [cancel, discard, save]) await guard.getByRole('button', { name: label, exact: true }).waitFor()
+    assert.equal(await source.inputValue(), originalChapter.raw_text + suffix)
+    assert.equal(await name.inputValue(), originalChapter.title + suffix)
+    assert.equal(writes.length, before)
+    assert.deepEqual(chapter, originalChapter)
+    assert.equal(await guard.evaluate(e => e.scrollWidth <= e.clientWidth + 1), true)
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true)
+  }
+  await open()
+  await dirty(' discard')
+  await showGuard(' discard')
+  await page.screenshot({ path: join(output, `${c.lang}-leave-guard.png`), animations: 'disabled' })
+  await guard.getByRole('button', { name: cancel, exact: true }).click()
+  await guard.waitFor({ state: 'hidden' })
+  assert.equal(await source.inputValue(), originalChapter.raw_text + ' discard')
+  assert.equal(await name.inputValue(), originalChapter.title + ' discard')
+  await showGuard(' discard')
+  await guard.getByRole('button', { name: discard, exact: true }).click()
+  await editor.waitFor({ state: 'hidden' })
+  assert.equal(writes.length, before)
+  assert.deepEqual(chapter, originalChapter)
+  await open()
+  assert.equal(await source.inputValue(), originalChapter.raw_text)
+  assert.equal(await name.inputValue(), originalChapter.title)
+  await dirty(' save ' + c.lang)
+  await showGuard(' save ' + c.lang)
+  await guard.getByRole('button', { name: save, exact: true }).click()
+  await editor.waitFor({ state: 'hidden' })
+  assert.equal(writes.length, before + 1)
+  assert.deepEqual(writes.at(-1), { expected_basis_version: originalChapter.basis_version, title: originalChapter.title + ' save ' + c.lang, raw_text: originalChapter.raw_text + ' save ' + c.lang })
+  await open()
+  assert.equal(await source.inputValue(), chapter.raw_text)
+  assert.equal(await name.inputValue(), chapter.title)
+  assert.equal(chapter.condensed_text, originalChapter.condensed_text)
+  assert.deepEqual(chapter.source_explanations, originalChapter.source_explanations)
+  assert.deepEqual(other, beforeOther)
+  assert.deepEqual(scenes, beforeScenes)
+  await editor.getByRole('button', { name: back, exact: true }).click()
+  await editor.waitFor({ state: 'hidden' })
+  observingGuard = false
+}
+
 try {
   await server.listen()
   browser = await chromium.launch({ headless: true, channel: process.env.PLAYWRIGHT_CHANNEL })
@@ -100,11 +168,12 @@ try {
     const req = route.request(), url = new URL(req.url()), path = url.pathname
     if (url.origin !== origin) { forbidden.push(url.origin); return route.abort() }
     if (!path.includes('/api/')) return route.continue()
+    if (observingGuard && req.method() === 'GET') guardReads.add(path)
     const respond = data => route.fulfill({ json: { success: true, code: 200, data } })
     if (path.endsWith('/studio/chapters/ch1') && req.method() === 'PATCH') {
       const body = req.postDataJSON(); writes.push(body)
       assert.equal(body.expected_basis_version, chapter.basis_version)
-      chapter.raw_text = body.raw_text; chapter.basis_version = `v${writes.length + 1}`
+      chapter.raw_text = body.raw_text; if (body.title !== undefined) chapter.title = body.title; chapter.basis_version = `v${writes.length + 1}`
       return respond(chapter)
     }
     if (req.method() !== 'GET') { forbidden.push(`${req.method()} ${path}`); return route.fulfill({ status: 405, json: { detail: 'Unexpected write' } }) }
@@ -124,9 +193,18 @@ try {
   await switchLanguage(copy.en, 'Tiếng Việt', copy.vi)
   await exercise(copy.vi, 'Chưa lưu.', false)
   assert.equal(writes.length, 3)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await exerciseGuard(copy.vi, guardCopy.vi)
+  await page.setViewportSize({ width: 1366, height: 768 })
+  await switchLanguage(copy.vi, 'English', copy.en)
+  await exerciseGuard(copy.en, guardCopy.en)
+  await switchLanguage(copy.en, '简体中文', copy.zh)
+  await exerciseGuard(copy.zh, guardCopy.zh)
+  assert.equal(writes.length, 6)
   assert.deepEqual(forbidden, [])
   assert.deepEqual(errors, [])
-  console.log('Source-save impact: zh/vi/en cancel/confirm/review, exact PATCH and preserved source/other data, mobile/desktop PASS.')
+  console.log('Mock read-only paths during guard exercise:', [...guardReads].sort())
+  console.log('Source-save impact and dirty-draft leave: zh/vi/en cancel/discard/save/review, six exact PATCH bodies, preserved unrelated data, mobile/desktop PASS.')
 } catch (error) {
   await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
   console.error('Evidence:', output, await page?.locator('body').innerText())

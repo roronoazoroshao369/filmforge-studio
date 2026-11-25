@@ -688,3 +688,35 @@ test('Vietnamese covers Chapter outer source editor labels and shared source rea
   assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
   for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
 })
+
+
+test('Vietnamese covers shared workspace dirty-draft leave guard', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const expected = new Map([
+    ['取消，继续编辑', 'Hủy, tiếp tục chỉnh sửa'],
+    ['放弃修改并继续', 'Bỏ thay đổi và tiếp tục'],
+    ['保存后继续', 'Lưu và tiếp tục'],
+    ['继续前，请处理以下修改。保存不会确认版本、开始生成或改变当前采用。', 'Hãy xử lý các thay đổi sau trước khi tiếp tục. Việc lưu không xác nhận phiên bản, bắt đầu tạo nội dung hay thay đổi kết quả đang được sử dụng.'],
+  ])
+  const file = 'pages/aiStudio/directing/WorkspaceDrafts.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const usage = new Map([...expected.keys()].map(key => [key, 0]))
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText'
+      && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0]) && usage.has(node.arguments[0].text)) {
+      const key = node.arguments[0].text
+      usage.set(key, usage.get(key) + 1)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.deepEqual([...usage.values()], [1, 1, 1, 1])
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+  for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
+})
