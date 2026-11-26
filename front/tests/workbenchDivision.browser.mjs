@@ -65,6 +65,85 @@ try {
   const page = await context.newPage()
   page.setDefaultTimeout(9000)
   const location = 'http://127.0.0.1:4386/projects/' + project + '/chapters/' + chapter + '/workbench-management'
+  // S29: exercise the actual operation-review boundary in each locale, without saving.
+  const lockBaseline = await request(chapterApi)
+  for (const copy of [
+    { locale: 'zh-CN', status: '操作处理中，完成后可继续编辑。', remove: '移出本章草稿', review: '确认移出场次', cancel: '继续调整' },
+    { locale: 'vi-VN', status: 'Đang xử lý thao tác. Bạn có thể tiếp tục chỉnh sửa khi hoàn tất.', remove: 'Remove from chapter draft', review: 'Confirm scene removal', cancel: 'Continue adjusting' },
+    { locale: 'en-US', status: 'Operation in progress. Editing will resume when it finishes.', remove: 'Remove from chapter draft', review: 'Confirm scene removal', cancel: 'Continue adjusting' },
+  ]) {
+    const lockedPage = await browser.newPage({ viewport: { width: 1600, height: 960 } })
+    const calls = [], unexpected = [], pageErrors = []
+    await lockedPage.addInitScript(locale => {
+      window.__ENV = { BACKEND_URL: window.location.origin }
+      localStorage.setItem('jellyfish_language', locale)
+    }, copy.locale)
+    lockedPage.on('pageerror', error => pageErrors.push(error.message))
+    await lockedPage.route('**/*', async route => {
+      const req = route.request(), url = new URL(req.url())
+      if (url.origin !== new URL(location).origin) {
+        unexpected.push(req.method() + ' ' + url.origin)
+        return route.abort()
+      }
+      if (req.method() !== 'GET' && req.method() !== 'HEAD') {
+        if (req.method() === 'POST' && url.pathname === new URL(chapterApi + '/division/preview').pathname) calls.push(req.postDataJSON())
+        else { unexpected.push(req.method() + ' ' + url.pathname); return route.abort() }
+      }
+      return route.continue()
+    })
+    try {
+      await lockedPage.goto(location + '?sequence=' + first.id + '&step=division')
+      const list = lockedPage.locator('.chapter-division-list')
+      const sourceText = lockedPage.locator('.chapter-source-text')
+      await list.locator('.chapter-scene-select[aria-pressed="true"]').waitFor()
+      assert.equal(await sourceText.textContent(), raw)
+      const before = await list.locator('.chapter-scene-select').allTextContents()
+      const boundary = list.locator('xpath=ancestor::fieldset[1]')
+      assert.equal(await boundary.count(), 1)
+      const previewResponse = lockedPage.waitForResponse(response => response.request().method() === 'POST' && new URL(response.url()).pathname === new URL(chapterApi + '/division/preview').pathname)
+      await list.getByRole('button', { name: copy.remove, exact: true }).click()
+      const dialog = lockedPage.getByRole('dialog', { name: copy.review, exact: true })
+      await dialog.waitFor()
+      const status = lockedPage.locator('p[role="status"]').filter({ hasText: copy.status })
+      await status.waitFor()
+      assert.equal(await status.textContent(), copy.status)
+      assert.deepEqual(await boundary.evaluate(el => [el.disabled, el.inert, el.getAttribute('aria-busy')]), [true, true, 'true'])
+      const other = list.locator('.chapter-scene-select').filter({ hasText: '后院' })
+      assert.equal(await other.isDisabled(), true)
+      await assert.rejects(other.click({ trial: true, timeout: 500 }))
+      assert.equal(await other.evaluate(el => { el.focus(); return document.activeElement === el }), false)
+      assert.equal(await lockedPage.locator('.source-selection').textContent(), '前厅点灯。')
+      assert.deepEqual(await list.locator('.chapter-scene-select').allTextContents(), before)
+      assert.ok((await previewResponse).ok())
+      const remaining = lockBaseline.sequences.find(row => row.id === second.id)
+      assert.deepEqual(calls, [{
+        source_version: lockBaseline.source_version,
+        baseline: lockBaseline.sequences.map(row => ({ sequence_id: row.id, version: row.version })),
+        members: [{ key: remaining.id, sequence_id: remaining.id, title: remaining.title, span: remaining.span }],
+        exited_sequence_ids: [first.id],
+        lineage: lockBaseline.sequences.map(row => ({ sequence_id: row.id, target_keys: row.id === first.id ? [] : [row.id] })),
+      }])
+      assert.deepEqual(await request(chapterApi), lockBaseline)
+      await lockedPage.screenshot({ path: join(output, 'write-boundary-' + copy.locale + '.png') })
+      await dialog.getByRole('button', { name: copy.cancel, exact: true }).click()
+      await dialog.waitFor({ state: 'hidden' })
+      await status.waitFor({ state: 'hidden' })
+      assert.deepEqual(await boundary.evaluate(el => [el.disabled, el.inert, el.getAttribute('aria-busy')]), [false, false, 'false'])
+      assert.deepEqual(await list.locator('.chapter-scene-select').allTextContents(), before)
+      // Continue adjusting retains the review cache; explicitly discard the operation before changing scenes.
+      const cancelOperation = lockedPage.getByRole('button', { name: copy.locale === 'zh-CN' ? '取消本次操作' : 'Cancel operation', exact: true })
+      assert.equal(await cancelOperation.isEnabled(), true)
+      await cancelOperation.click()
+      await other.click()
+      await lockedPage.waitForFunction(() => document.querySelector('.source-selection')?.textContent === '后院下雨。', null, { timeout: 9000 })
+      assert.deepEqual(await request(chapterApi), lockBaseline)
+      assert.equal(calls.length, 1)
+      assert.deepEqual(unexpected, [])
+      assert.deepEqual(pageErrors, [])
+      assert.equal(await lockedPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true)
+      console.log('PASS write-boundary review cancel ' + copy.locale)
+    } finally { await lockedPage.close() }
+  }
   await page.goto(location + '?sequence=' + first.id + '&step=division')
   const reader = page.getByRole('region', { name: '完整章节原文' })
   await reader.waitFor()

@@ -1847,7 +1847,7 @@
   "播放视频": "Phát video",
   "操作": "Thao tác",
   "操作后范围重叠，请先处理冲突场次": "The resulting ranges overlap. Resolve the conflicting scenes first.",
-  "操作处理中，完成后可继续编辑。": "Operation in progress. Editing will resume when it finishes.",
+  "操作处理中，完成后可继续编辑。": "Đang xử lý thao tác. Bạn có thể tiếp tục chỉnh sửa khi hoàn tất.",
   "操作失败，请核对输入后重试": "Action failed. Check the input and try again.",
   "操作失败，输入已保留": "Operation failed. Your input was retained.",
   "操作尚未确认，请核对画布保存状态后重试": "Operation unconfirmed. Check canvas save status and retry.",

@@ -874,3 +874,36 @@ test('Vietnamese covers Chapter existing-editor draft name', () => {
   assert.notEqual(vietnamese[key], english[key], key)
   assert.equal(vietnamese[key], 'Chỉnh sửa chương')
 })
+
+test('Vietnamese covers the workspace write-boundary busy status', () => {
+  const key = '操作处理中，完成后可继续编辑。'
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const file = 'pages/aiStudio/directing/WorkspaceDrafts.tsx'
+  const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const matches = []
+  function visit(node) {
+    if (ts.isJsxElement(node) && node.openingElement.tagName.getText(ast) === 'p'
+      && node.openingElement.attributes.properties.some(attribute =>
+        ts.isJsxAttribute(attribute) && attribute.name.getText(ast) === 'role'
+        && attribute.initializer && ts.isStringLiteral(attribute.initializer) && attribute.initializer.text === 'status')) {
+      for (const child of node.children) {
+        if (ts.isJsxExpression(child) && child.expression && ts.isCallExpression(child.expression)
+          && child.expression.expression.getText(ast) === 'uiText'
+          && child.expression.arguments[0] && ts.isStringLiteralLike(child.expression.arguments[0])
+          && child.expression.arguments[0].text === key) matches.push(node)
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(ast)
+  assert.equal(matches.length, 1)
+  assert.ok(ts.isBinaryExpression(matches[0].parent))
+  assert.equal(matches[0].parent.left.getText(ast), 'busy')
+  assert.equal(matches[0].parent.operatorToken.kind, ts.SyntaxKind.AmpersandAmpersandToken)
+  assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key))
+  assert.deepEqual(tokens(vietnamese[key]), tokens(key))
+  assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]))
+  assert.notEqual(vietnamese[key], english[key], key)
+  assert.equal(vietnamese[key], 'Đang xử lý thao tác. Bạn có thể tiếp tục chỉnh sửa khi hoàn tất.')
+})
