@@ -907,3 +907,63 @@ test('Vietnamese covers the workspace write-boundary busy status', () => {
   assert.notEqual(vietnamese[key], english[key], key)
   assert.equal(vietnamese[key], 'Đang xử lý thao tác. Bạn có thể tiếp tục chỉnh sửa khi hoàn tất.')
 })
+
+test('Vietnamese covers division removal review and cancellation controls', () => {
+  const english = catalog('en-US', 'ui')
+  const vietnamese = catalog('vi-VN', 'ui')
+  const expected = new Map([
+    ['移出本章草稿', 'Loại khỏi bản nháp chương'],
+    ['确认移出场次', 'Xác nhận loại cảnh khỏi bản nháp'],
+    ['继续调整', 'Tiếp tục điều chỉnh'],
+    ['确认加入草稿', 'Xác nhận và thêm vào bản nháp'],
+    ['取消本次操作', 'Hủy thao tác'],
+  ])
+  const counts = new Map([...expected.keys()].map(key => [key, 0]))
+  const dynamic = []
+  const cancelAttributes = []
+  for (const name of ['ChapterDivisionEditor', 'DivisionOperationReview']) {
+    const file = 'pages/aiStudio/directing/' + name + '.tsx'
+    const ast = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+    function visit(node) {
+      if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText' && node.arguments[0]) {
+        const arg = node.arguments[0]
+        if (ts.isStringLiteralLike(arg) && counts.has(arg.text)) {
+          counts.set(arg.text, counts.get(arg.text) + 1)
+          if (arg.text === '取消本次操作') {
+            assert.ok(ts.isJsxExpression(node.parent) && ts.isJsxAttribute(node.parent.parent))
+            cancelAttributes.push(node.parent.parent.name.getText(ast))
+          }
+        }
+        if (arg.getText(ast) === 'review.title') {
+          assert.ok(ts.isJsxExpression(node.parent) && ts.isJsxAttribute(node.parent.parent))
+          assert.equal(node.parent.parent.name.getText(ast), 'title')
+          assert.equal(node.parent.parent.parent.parent.tagName.getText(ast), 'DivisionOperationReview')
+          dynamic.push('localized review title')
+        }
+      }
+      if (ts.isPropertyAssignment(node) && node.name.getText(ast) === 'title'
+        && ts.isStringLiteralLike(node.initializer) && node.initializer.text === '确认移出场次') {
+        assert.ok(ts.isObjectLiteralExpression(node.parent) && ts.isCallExpression(node.parent.parent))
+        assert.equal(node.parent.parent.expression.getText(ast), 'setReview')
+        dynamic.push('removal title')
+      }
+      if (name === 'DivisionOperationReview' && ts.isJsxOpeningElement(node) && node.tagName.getText(ast) === 'Modal') {
+        const title = node.attributes.properties.find(prop => ts.isJsxAttribute(prop) && prop.name.getText(ast) === 'title')
+        assert.equal(title?.initializer?.getText(ast), '{title}')
+        dynamic.push('modal title')
+      }
+      ts.forEachChild(node, visit)
+    }
+    visit(ast)
+  }
+  assert.deepEqual([...counts.values()], [1, 0, 1, 1, 2])
+  assert.deepEqual(dynamic.sort(), ['localized review title', 'modal title', 'removal title'])
+  assert.deepEqual(cancelAttributes.sort(), ['aria-label', 'title'])
+  for (const key of expected.keys()) {
+    assert.ok(Object.hasOwn(english, key) && Object.hasOwn(vietnamese, key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(key), key)
+    assert.deepEqual(tokens(vietnamese[key]), tokens(english[key]), key)
+  }
+  assert.deepEqual([...expected.keys()].filter(key => vietnamese[key] === english[key]), [])
+  for (const [key, value] of expected) assert.equal(vietnamese[key], value, key)
+})

@@ -65,14 +65,15 @@ try {
   const page = await context.newPage()
   page.setDefaultTimeout(9000)
   const location = 'http://127.0.0.1:4386/projects/' + project + '/chapters/' + chapter + '/workbench-management'
-  // S29: exercise the actual operation-review boundary in each locale, without saving.
+  // S29/S30: operation review, explicit cancellation, local confirmation and undo without saving.
   const lockBaseline = await request(chapterApi)
   for (const copy of [
-    { locale: 'zh-CN', status: '操作处理中，完成后可继续编辑。', remove: '移出本章草稿', review: '确认移出场次', cancel: '继续调整' },
-    { locale: 'vi-VN', status: 'Đang xử lý thao tác. Bạn có thể tiếp tục chỉnh sửa khi hoàn tất.', remove: 'Remove from chapter draft', review: 'Confirm scene removal', cancel: 'Continue adjusting' },
-    { locale: 'en-US', status: 'Operation in progress. Editing will resume when it finishes.', remove: 'Remove from chapter draft', review: 'Confirm scene removal', cancel: 'Continue adjusting' },
+    { locale: 'zh-CN', status: '操作处理中，完成后可继续编辑。', remove: '移出本章草稿', review: '确认移出场次', cancel: '继续调整', confirm: '确认加入草稿', abort: '取消本次操作', undo: '撤销上一步' },
+    { locale: 'vi-VN', status: 'Đang xử lý thao tác. Bạn có thể tiếp tục chỉnh sửa khi hoàn tất.', remove: 'Loại khỏi bản nháp chương', review: 'Xác nhận loại cảnh khỏi bản nháp', cancel: 'Tiếp tục điều chỉnh', confirm: 'Xác nhận và thêm vào bản nháp', abort: 'Hủy thao tác', undo: 'Undo last step' },
+    { locale: 'en-US', status: 'Operation in progress. Editing will resume when it finishes.', remove: 'Remove from chapter draft', review: 'Confirm scene removal', cancel: 'Continue adjusting', confirm: 'Confirm and add to draft', abort: 'Cancel operation', undo: 'Undo last step' },
+    { locale: 'vi-VN', mobile: true, status: 'Đang xử lý thao tác. Bạn có thể tiếp tục chỉnh sửa khi hoàn tất.', remove: 'Loại khỏi bản nháp chương', review: 'Xác nhận loại cảnh khỏi bản nháp', cancel: 'Tiếp tục điều chỉnh', confirm: 'Xác nhận và thêm vào bản nháp', abort: 'Hủy thao tác', undo: 'Undo last step' },
   ]) {
-    const lockedPage = await browser.newPage({ viewport: { width: 1600, height: 960 } })
+    const lockedPage = await browser.newPage({ viewport: copy.mobile ? { width: 390, height: 844 } : { width: 1600, height: 960 } })
     const calls = [], unexpected = [], pageErrors = []
     await lockedPage.addInitScript(locale => {
       window.__ENV = { BACKEND_URL: window.location.origin }
@@ -95,6 +96,20 @@ try {
       await lockedPage.goto(location + '?sequence=' + first.id + '&step=division')
       const list = lockedPage.locator('.chapter-division-list')
       const sourceText = lockedPage.locator('.chapter-source-text')
+      const helper = lockedPage.locator('.management-division-drawer')
+      const openHelper = async () => {
+        if (!copy.mobile) return
+        await lockedPage.getByRole('button', { name: 'Chapter scenes', exact: true }).click()
+        await helper.waitFor({ state: 'visible' })
+        await list.waitFor({ state: 'visible' })
+      }
+      const closeHelper = async () => {
+        if (!copy.mobile) return
+        await helper.locator('.ant-drawer-close').click()
+        await helper.waitFor({ state: 'hidden' })
+      }
+      await sourceText.waitFor()
+      await openHelper()
       await list.locator('.chapter-scene-select[aria-pressed="true"]').waitFor()
       assert.equal(await sourceText.textContent(), raw)
       const before = await list.locator('.chapter-scene-select').allTextContents()
@@ -104,7 +119,7 @@ try {
       await list.getByRole('button', { name: copy.remove, exact: true }).click()
       const dialog = lockedPage.getByRole('dialog', { name: copy.review, exact: true })
       await dialog.waitFor()
-      const status = lockedPage.locator('p[role="status"]').filter({ hasText: copy.status })
+      const status = copy.mobile ? boundary.locator('xpath=preceding-sibling::p[@role="status"][1]') : lockedPage.locator('p[role="status"]').filter({ hasText: copy.status })
       await status.waitFor()
       assert.equal(await status.textContent(), copy.status)
       assert.deepEqual(await boundary.evaluate(el => [el.disabled, el.inert, el.getAttribute('aria-busy')]), [true, true, 'true'])
@@ -116,32 +131,60 @@ try {
       assert.deepEqual(await list.locator('.chapter-scene-select').allTextContents(), before)
       assert.ok((await previewResponse).ok())
       const remaining = lockBaseline.sequences.find(row => row.id === second.id)
-      assert.deepEqual(calls, [{
+      const expectedPreview = {
         source_version: lockBaseline.source_version,
         baseline: lockBaseline.sequences.map(row => ({ sequence_id: row.id, version: row.version })),
         members: [{ key: remaining.id, sequence_id: remaining.id, title: remaining.title, span: remaining.span }],
         exited_sequence_ids: [first.id],
         lineage: lockBaseline.sequences.map(row => ({ sequence_id: row.id, target_keys: row.id === first.id ? [] : [row.id] })),
-      }])
+      }
+      assert.deepEqual(calls, [expectedPreview])
       assert.deepEqual(await request(chapterApi), lockBaseline)
-      await lockedPage.screenshot({ path: join(output, 'write-boundary-' + copy.locale + '.png') })
+      await dialog.getByRole('button', { name: copy.confirm, exact: true }).waitFor()
+      await lockedPage.screenshot({ path: join(output, 'write-boundary-' + copy.locale + (copy.mobile ? '-mobile' : '') + '.png') })
       await dialog.getByRole('button', { name: copy.cancel, exact: true }).click()
       await dialog.waitFor({ state: 'hidden' })
       await status.waitFor({ state: 'hidden' })
       assert.deepEqual(await boundary.evaluate(el => [el.disabled, el.inert, el.getAttribute('aria-busy')]), [false, false, 'false'])
       assert.deepEqual(await list.locator('.chapter-scene-select').allTextContents(), before)
       // Continue adjusting retains the review cache; explicitly discard the operation before changing scenes.
-      const cancelOperation = lockedPage.getByRole('button', { name: copy.locale === 'zh-CN' ? '取消本次操作' : 'Cancel operation', exact: true })
+      await closeHelper()
+      const cancelOperation = lockedPage.getByRole('button', { name: copy.abort, exact: true })
       assert.equal(await cancelOperation.isEnabled(), true)
       await cancelOperation.click()
+      await openHelper()
       await other.click()
       await lockedPage.waitForFunction(() => document.querySelector('.source-selection')?.textContent === '后院下雨。', null, { timeout: 9000 })
       assert.deepEqual(await request(chapterApi), lockBaseline)
       assert.equal(calls.length, 1)
+      // Re-enter the same removal review; confirm into the local draft only, then undo.
+      const original = list.locator('.chapter-scene-select').filter({ hasText: '前厅' })
+      await original.click()
+      await lockedPage.waitForFunction(() => document.querySelector('.source-selection')?.textContent === '前厅点灯。')
+      const secondPreview = lockedPage.waitForResponse(response => response.request().method() === 'POST' && new URL(response.url()).pathname === new URL(chapterApi + '/division/preview').pathname)
+      await list.getByRole('button', { name: copy.remove, exact: true }).click()
+      await dialog.waitFor()
+      assert.ok((await secondPreview).ok())
+      assert.deepEqual(calls, [expectedPreview, expectedPreview])
+      await dialog.getByRole('button', { name: copy.confirm, exact: true }).click()
+      await dialog.waitFor({ state: 'hidden' })
+      await original.waitFor({ state: 'detached' })
+      assert.equal(await list.locator('.chapter-scene-select').count(), 1)
+      assert.equal(await sourceText.textContent(), raw)
+      assert.deepEqual(await request(chapterApi), lockBaseline)
+      await closeHelper()
+      await lockedPage.getByRole('button', { name: copy.undo, exact: true }).click()
+      await openHelper()
+      await original.waitFor()
+      assert.deepEqual(await list.locator('.chapter-scene-select').allTextContents(), before)
+      assert.equal(await sourceText.textContent(), raw)
+      assert.equal(await lockedPage.locator('.source-selection').textContent(), '前厅点灯。')
+      assert.deepEqual(await request(chapterApi), lockBaseline)
+      assert.deepEqual(calls, [expectedPreview, expectedPreview])
       assert.deepEqual(unexpected, [])
       assert.deepEqual(pageErrors, [])
       assert.equal(await lockedPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true)
-      console.log('PASS write-boundary review cancel ' + copy.locale)
+      console.log('PASS division removal review cancel/confirm/undo ' + copy.locale + (copy.mobile ? ' mobile' : ' desktop'))
     } finally { await lockedPage.close() }
   }
   await page.goto(location + '?sequence=' + first.id + '&step=division')
