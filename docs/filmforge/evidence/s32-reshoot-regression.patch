@@ -1,0 +1,171 @@
+diff --git a/backend/tests/directing/test_picture_master_fixture.py b/backend/tests/directing/test_picture_master_fixture.py
+--- a/backend/tests/directing/test_picture_master_fixture.py
++++ b/backend/tests/directing/test_picture_master_fixture.py
+@@ -139,3 +139,167 @@
+             with pytest.raises((ValueError, HTTPException), match=message):
+                 await build_manifest(store, sequence, cut.id, paths, 180, 320)
+             assert not list(tmp_path.glob('master-*.mp4'))
++
++
++@pytest.mark.asyncio
++async def test_reshoot_preserves_pinned_cut_and_replaces_one_take(tmp_path):
++    """Synthetic fixed-record regression; not current canvas adoption or product export."""
++    from app.models.task import TaskOutput
++    from app.services.directing.store import DirectingStore, RevisionConflict
++    from tests.directing.picture_master_fixture import build_manifest, render_picture
++
++    async def active_id(db, sequence):
++        return (await db.get(ActiveCut, sequence, populate_existing=True)).revision_id
++
++    async def revision_state(store, revision_id):
++        row = await store.revision(revision_id, confirmed=True)
++        return (row.parent_id, row.version, row.confirmed_by, row.confirmed_at, deepcopy(row.payload))
++
++    async def take_state(db, take_id):
++        row = await db.get(Take, take_id, populate_existing=True)
++        return (row.sequence_id, row.prompt_revision_id, row.plan_revision_id, row.unit_id,
++                row.task_id, row.output_ordinal, row.file_id, row.version, deepcopy(row.annotation))
++
++    async def file_state(db, file_id):
++        row = await db.get(FileItem, file_id, populate_existing=True)
++        return (row.storage_key, row.duration_ms, row.content_hash, row.deleted_at)
++
++    async def references(db):
++        return set((await db.execute(select(CutTakeReference.revision_id,
++                                            CutTakeReference.take_id))).all())
++
++    async with database(tmp_path) as sessions:
++        async with sessions.begin() as db:
++            store, sequence, _, takes, paths = await source_fixture(db, tmp_path)
++            first, second = takes
++            cut_a = await frozen(store, sequence, 'cut', {'items': [
++                clip('a', first.id, 200, 1000, 0),
++                clip('b', second.id, 400, 1200, 1200),
++            ]})
++            a_id = cut_a.id
++            a_before = await revision_state(store, a_id)
++            take_before = {take.id: await take_state(db, take.id) for take in takes}
++            file_before = {fid: await file_state(db, fid) for fid in paths}
++            hashes = {fid: digest(path) for fid, path in paths.items()}
++            a_manifest = await build_manifest(store, sequence, a_id, paths, 320, 180)
++            a_refs = {(a_id, first.id), (a_id, second.id)}
++            assert await active_id(db, sequence) == a_id
++            assert await references(db) == a_refs
++
++            path = tmp_path / 'video3.mp4'
++            subprocess.run(['ffmpeg', '-v', 'error', '-nostdin', '-f', 'lavfi', '-i',
++                            'color=c=lime:s=320x180:r=25:d=2', '-c:v', 'libx264',
++                            '-pix_fmt', 'yuv420p', str(path)], check=True, timeout=30)
++            paths['video3'] = path
++            hashes['video3'] = digest(path)
++            assert len(set(hashes.values())) == 3
++            db.add(FileItem(id='video3', type='video', name='synthetic reshoot',
++                            storage_key='files/reshoot.mp4', duration_ms=2000,
++                            content_hash=hashes['video3']))
++            await db.flush()
++            await output(db, first.prompt_revision_id, 'task3', 'video3')
++            replacement = await store.register_take(prompt_revision_id=first.prompt_revision_id,
++                                                    task_id='task3', output_ordinal=0)
++            retry = await store.register_take(prompt_revision_id=first.prompt_revision_id,
++                                              task_id='task3', output_ordinal=0)
++            replacement_id = replacement.id
++            assert replacement_id not in take_before and retry.id == replacement_id
++            assert (replacement.sequence_id, replacement.prompt_revision_id, replacement.plan_revision_id,
++                    replacement.unit_id) == (first.sequence_id, first.prompt_revision_id,
++                                             first.plan_revision_id, first.unit_id)
++            assert (replacement.task_id, replacement.output_ordinal, replacement.file_id) == ('task3', 0, 'video3')
++            assert (await db.get(TaskOutput, ('task3', 0))).file_id == 'video3'
++            assert set((await db.scalars(select(Take.id))).all()) == {*take_before, replacement_id}
++            assert await active_id(db, sequence) == a_id
++            assert await revision_state(store, a_id) == a_before
++            assert await references(db) == a_refs
++            for tid, state in take_before.items():
++                assert await take_state(db, tid) == state
++            for fid, state in file_before.items():
++                assert await file_state(db, fid) == state
++            assert {fid: digest(p) for fid, p in paths.items()} == hashes
++            take_before[replacement_id] = await take_state(db, replacement_id)
++            file_before['video3'] = await file_state(db, 'video3')
++
++            payload = deepcopy(a_before[-1])
++            payload['items'][0]['take_id'] = replacement_id
++            draft = await store.save_revision(sequence, kind='cut', payload=payload, parent_id=a_id)
++            b_id, draft_version = draft.id, draft.version
++            assert b_id != a_id and draft.parent_id == a_id and draft.confirmed_at is None
++            assert draft.payload == payload and draft.payload['items'][1] == a_before[-1]['items'][1]
++            assert await active_id(db, sequence) == a_id
++            assert await revision_state(store, a_id) == a_before
++
++            # Advance the draft CAS version without changing its editorial content.
++            draft = await store.save_revision(sequence, kind='cut', payload=payload,
++                                              revision_id=b_id, expected_version=draft_version)
++            assert draft.version == draft_version + 1 and draft.payload == payload
++            with pytest.raises(RevisionConflict):
++                await store.confirm_revision(b_id, expected_version=draft_version, actor_id='author')
++            assert await active_id(db, sequence) == a_id
++            draft = await store.revision(b_id)
++            assert draft.confirmed_at is None and draft.payload == payload
++            confirmed = await store.confirm_revision(b_id, expected_version=draft.version, actor_id='author')
++            assert confirmed.confirmed_by == 'author' and confirmed.parent_id == a_id
++            assert await active_id(db, sequence) == b_id
++            b_before = await revision_state(store, b_id)
++            assert b_before[-1] == payload
++            assert await revision_state(store, a_id) == a_before
++
++        # Reopen the committed SQLite state; explicit A remains renderable while B is active.
++        async with sessions() as db:
++            store = DirectingStore(db, 'p1')
++            assert await active_id(db, sequence) == b_id
++            assert await revision_state(store, a_id) == a_before
++            assert await revision_state(store, b_id) == b_before
++            assert await references(db) == a_refs | {(b_id, replacement_id), (b_id, second.id)}
++            manifests = [await build_manifest(store, sequence, rid, paths, 320, 180) for rid in (a_id, b_id)]
++            assert manifests[0] == a_manifest
++            a_segments, b_segments = (manifest['segments'] for manifest in manifests)
++            assert [(s['kind'], s['timeline_start_ms'], s['duration_ms']) for s in a_segments] == [
++                ('media', 0, 800), ('gap', 800, 400), ('media', 1200, 800)]
++            expected_first = dict(a_segments[0], take_id=replacement_id, file_id='video3', sha256=hashes['video3'])
++            assert b_segments == [expected_first, *a_segments[1:]]
++            assert [(s['source_in_ms'], s['source_out_ms']) for s in (a_segments[0], a_segments[2])] == [
++                (200, 1000), (400, 1200)]
++            assert a_segments[0]['sha256'] == hashes['video1'] and a_segments[2]['sha256'] == hashes['video2']
++
++            output_hashes = []
++            for label, manifest, first_channel in zip(('a', 'b'), manifests, (0, 1)):
++                movie = tmp_path / f'reshoot-{label}.mp4'
++                render_picture(manifest, paths, movie)
++                probe = json.loads(subprocess.check_output(
++                    ['ffprobe', '-v', 'error', '-show_streams', '-show_format', '-of', 'json', str(movie)],
++                    timeout=30))
++                assert len(probe['streams']) == 1
++                stream = probe['streams'][0]
++                assert (stream['codec_type'], stream['width'], stream['height'],
++                        stream['r_frame_rate'], int(stream['nb_frames'])) == ('video', 320, 180, '25/1', 50)
++                assert float(probe['format']['duration']) == 2.0
++                pixels = subprocess.check_output(
++                    ['ffmpeg', '-v', 'error', '-i', str(movie), '-vf', 'crop=2:2:(iw-2)/2:(ih-2)/2',
++                     '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-threads', '1', '-'], timeout=30)
++                assert len(pixels) == 50 * 12
++                for frame in range(50):
++                    channel = first_channel if frame < 20 else (None if frame < 30 else 2)
++                    for offset in range(frame * 12, (frame + 1) * 12, 3):
++                        pixel = pixels[offset:offset + 3]
++                        if channel is None:
++                            assert max(pixel) < 12
++                        else:
++                            assert pixel[channel] > 200 and all(v < 25 for i, v in enumerate(pixel) if i != channel)
++                manifest['output_sha256'] = digest(movie)
++                sidecar = movie.with_suffix('.json')
++                sidecar.write_text(json.dumps(manifest, indent=2), encoding='utf-8')
++                assert json.loads(sidecar.read_text(encoding='utf-8'))['output_sha256'] == digest(movie)
++                output_hashes.append(digest(movie))
++                print(f'{movie.name}: 320x180, 25fps, 50 frames, 2s, sha256={digest(movie)}')
++            assert output_hashes[0] != output_hashes[1]
++            assert {fid: digest(p) for fid, p in paths.items()} == hashes
++            for tid, state in take_before.items():
++                assert await take_state(db, tid) == state
++            for fid, state in file_before.items():
++                assert await file_state(db, fid) == state
++            assert await revision_state(store, a_id) == a_before
++            assert await revision_state(store, b_id) == b_before
++            assert await active_id(db, sequence) == b_id
