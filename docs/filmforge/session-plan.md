@@ -11,6 +11,11 @@
 
 Main-only; no secret/paid provider/private IP egress by default; fixture-first dev preview; preserve existing task/media ownership and licenses. Each session owns one independently verifiable result and closes with project audit/handoff. Scope is ≤5 source files where practical, not a limit on necessary tests/docs. Do not promise fixed session count for unknown implementation.
 
+
+## Owner-directed acceleration — 2026-11-28
+
+Prioritize C1 editorial/finishing vertical slice, then module-level localization and later roadmap gates. Defer #68/#69 infrastructure recovery and small #66 slices; no gate/status waiver or unchecked runtime merge. The first independent technical target is the #46 reshoot-to-new-cut regression in the [current handoff](session-handoff.md); #42/#43/#44 remain blockers for full #46 acceptance. GitHub-only delivery; use an actually available executable checkout/runner for tests. See [master prompt](session-master-prompt.md) for exact next goal.
+
 ## Execution queue — ordered by evidence, not ticket ID
 
 | Session goal | Existing ticket(s) | Acceptance / boundary |

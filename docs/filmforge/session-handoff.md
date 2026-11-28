@@ -1,5 +1,24 @@
 # FilmForge — Context handoff hiện hành
 
+**S31 / #46 — execution re-triage (docs-only), 2026-11-28 Asia/Ho_Chi_Minh.** Baseline b92483fcfe1b26f300b83e25bada386993d40370; remote main-only checked. Owner requested GitHub-only, maximum roadmap throughput, defer CI/runner/preview recovery and small i18n slices, retain handoff/main-only and evidence-based done. This session selects the independent offline reshoot regression; no runtime change or completed #46 acceptance.
+- Live source: DirectingStore.register_take requires confirmed prompt and matching task.input_snapshot.prompt_revision_id; does not change cut. save_revision creates a child draft from confirmed parent; confirm_revision uses CAS and updates ActiveCut; SequenceCut rejects duplicate IDs/overlaps, permits gaps. media_execution.deliver_media routes canvas_node to canvas_history and directing_unit to candidate_take. Current canvas result is not an approved Take; old editor/HTTP routes retired. No fabricated prompt, task, review or duplicate persisted authority.
+- #42 is needs-triage/in-progress and depends 41; #43 not-started depends 40,41; #44 not-started depends 37,43; #46 not-started depends 42,43,44. Original dependency fields/status/acceptance unchanged. Offline fixture proof uses synthetic authorized inputs and does not waive full product gates.
+- Prior S18/S20/S21 proofs: synthetic picture, canvas candidate metadata, finishing; last aggregate 172 scoped SQLite tests passed historically, not rerun here. Existing S30 frontend evidence remains historical. Local git ls-remote failed DNS resolution for github.com (exit 128); no executable repo checkout in this runtime. GitHub connector reads available, Actions dispatch/runner list unavailable in prior session. No live preview recheck, no app tests, no paid calls, deployment or owner approvals. Historical tracker 69 / 7 done / 4 in-progress / 1 blocked / 57 not-started; locale 3864 / 1359 en-different / 2505 equal. No ticket field or locale edits. #05 unsigned, #55 blocked. #68/#69 and #66 deferred, not done. Rollback docs by reviewed revert. Find delivery via git log -1 -- docs/filmforge/session-master-prompt.md.
+
+## Next goal — S32 / #46 independent offline slice
+
+Implement a reshoot-to-new-cut proof on the existing fixed-record services, not a new timeline model or restored retired API. In backend/tests/directing/test_picture_master_fixture.py reuse source_fixture, clip, database, output, build_manifest and render_picture. Inspect test_store.py for a third scoped FileItem fixture (create one if needed); generate a distinct synthetic video for the same confirmed prompt/unit as the first take. Use a new TaskOutput identity; never fabricate a canvas prompt. Start with a failing new regression assertion, or record that existing behavior already passes and deliver regression-only evidence without inventing RED. Acceptance:
+1. Baseline confirmed cut A contains two real takes with explicit source ranges and gap; register replacement candidate without changing ActiveCut, old revision, old take/file hashes, or the second clip.
+2. Draft B via save_revision(kind="cut", parent_id=A.id) changes only the first clip's take identity, preserves placement/ranges and unaffected clip, and does not advance ActiveCut. Confirm B with expected_version in the fixture human scope; assert A stays immutable and ActiveCut becomes B only after confirmation. Assert stale confirmation rejected; same TaskOutput registration idempotent.
+3. Render explicit pinned A and B using existing test-only manifest/renderer; check ffprobe duration/frame count, decoded colors before/after at the replaced shot, unchanged gap and second shot, source/output SHA256 and lineage. No provider or production calls.
+4. Run focused and relevant isolated regression, record terminal logs; no product/API/schema change or claim that current canvas adoption/UI/export exists. Preserve original #46 dependencies 42,43,44 and acceptance. A separate current-canvas adoption design must establish a legitimate authority before product implementation.
+
+This is independent technical evidence under existing autonomous-unblock rules, not activation of blocked full #46. If no executable checkout/runner, preserve a patch and do not merge unverified application code. Do not repeat audit-only sessions; next implementation must begin with test code when an executable environment is available.
+
+---
+
+## S30 checkpoint (historical; superseded next goal)
+
 **Ngày:** 2026-11-26 (Asia/Ho_Chi_Minh).
 
 **S30 / #66 — Division removal review controls.** Baseline S29 4184c21f38274df8bcbd7d94a0ec95e109f43664 verified clean HEAD=origin/main=remote, main-only; S29 delivery and 12 browser logs verified. Find S30 delivery via git log -1 -- docs/filmforge/session-master-prompt.md and verify remote.
